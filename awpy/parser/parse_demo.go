@@ -342,6 +342,7 @@ type BombInfo struct {
 
 // Projectile
 type GrenadeInfo struct {
+	UniqueID        int64   `json:"uniqueID"`
 	ProjectileType  string  `json:"projectileType"`
 	X               float64 `json:"x"`
 	Y               float64 `json:"y"`
@@ -1986,6 +1987,7 @@ func main() {
 				currentProjectile.X = float64(objPos.X)
 				currentProjectile.Y = float64(objPos.Y)
 				currentProjectile.Z = float64(objPos.Z)
+				currentProjectile.UniqueID = ele.UniqueID()
 				currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 			}
 
@@ -2420,6 +2422,7 @@ func main() {
 				currentProjectile.X = float64(objPos.X)
 				currentProjectile.Y = float64(objPos.Y)
 				currentProjectile.Z = float64(objPos.Z)
+				currentProjectile.UniqueID = ele.UniqueID()
 				currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 			}
 
