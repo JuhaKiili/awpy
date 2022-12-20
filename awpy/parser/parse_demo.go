@@ -1114,7 +1114,7 @@ func main() {
 	p.RegisterEventHandler(func(e events.SmokeStart) {
 		gs := p.GameState()
 		s := Smoke{}
-		s.GrenadeEntityID = int64(e.GrenadeEntityID)
+		s.GrenadeEntityID = int64(e.Grenade.Entity.ID())
 		s.UniqueID = e.Grenade.UniqueID()
 		s.StartTick = int64(gs.IngameTick())
 		s.X = float64(e.Position.X)
@@ -1133,7 +1133,7 @@ func main() {
 	})
 
 	p.RegisterEventHandler(func(e events.SmokeExpired) {
-		removeID := int64(e.GrenadeEntityID)
+		removeID := int64(e.Grenade.Entity.ID())
 		for i, ele := range smokes {
 			if ele.GrenadeEntityID == removeID {
 				smokes = removeExpiredSmoke(smokes, i)
