@@ -366,10 +366,11 @@ type BombInfo struct {
 
 // Projectile.
 type GrenadeInfo struct {
-	ProjectileType string  `json:"projectileType"`
-	X              float64 `json:"x"`
-	Y              float64 `json:"y"`
-	Z              float64 `json:"z"`
+	UniqueID        int64   `json:"uniqueID"`
+	ProjectileType  string  `json:"projectileType"`
+	X               float64 `json:"x"`
+	Y               float64 `json:"y"`
+	Z               float64 `json:"z"`
 }
 
 // Inferno from molly or incend. grenade.
@@ -1585,7 +1586,7 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 	(*demoParser).RegisterEventHandler(func(e events.WeaponFire) {
 		gs := (*demoParser).GameState()
 
-		if (e.Weapon != nil) && (e.Weapon.String() != "Knife") && (e.Weapon.String() != "C4") && (e.Shooter != nil) {
+		if (e.Weapon != nil) && (e.Weapon.String() != "C4") && (e.Shooter != nil) {
 			currentWeaponFire := WeaponFireAction{}
 			currentWeaponFire.Tick = int64(gs.IngameTick())
 			currentWeaponFire.Second = determineSecond(currentWeaponFire.Tick, *currentRound, currentGame.TickRate)
@@ -1985,6 +1986,7 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 					currentFire.X = objPos.X
 					currentFire.Y = objPos.Y
 					currentFire.Z = objPos.Z
+          currentFire.UniqueID = ele.UniqueID()
 					currentFrame.Fires = append(currentFrame.Fires, currentFire)
 				}
 			}
@@ -2431,6 +2433,8 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 				currentProjectile.X = objPos.X
 				currentProjectile.Y = objPos.Y
 				currentProjectile.Z = objPos.Z
+        currentProjectile.UniqueID = ele.UniqueID()
+
 				currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 			}
 
