@@ -1,4 +1,6 @@
-[![Discord](https://img.shields.io/discord/868146581419999232?color=blue&label=Discord&logo=discord)](https://discord.gg/W34XjsSs2H) [![Downloads](https://static.pepy.tech/personalized-badge/awpy?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/awpy) [![Build](https://github.com/pnxenopoulos/awpy/actions/workflows/build.yml/badge.svg)](https://github.com/pnxenopoulos/awpy/actions/workflows/build.yml) [![Documentation Status](https://readthedocs.org/projects/awpy/badge/?version=latest)](https://awpy.readthedocs.io/en/latest/?badge=latest) [![Docs](https://img.shields.io/badge/docs-Documentation-informational)](https://awpy.readthedocs.io/en/latest/) [![GitHub issues](https://img.shields.io/github/issues/pnxenopoulos/awpy)](https://github.com/pnxenopoulos/awpy/issues) [![MIT Licence](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/pnxenopoulos/awpy/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/868146581419999232?color=blue&label=Discord&logo=discord)](https://discord.gg/W34XjsSs2H) [![Downloads](https://static.pepy.tech/personalized-badge/awpy?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/awpy) [![Build](https://github.com/pnxenopoulos/awpy/actions/workflows/build.yml/badge.svg)](https://github.com/pnxenopoulos/awpy/actions/workflows/build.yml) [![Documentation Status](https://readthedocs.org/projects/awpy/badge/?version=latest)](https://awpy.readthedocs.io/en/latest/?badge=latest) [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
+
+[![MIT Licence](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/pnxenopoulos/awpy/blob/main/LICENSE) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff) [![Checked with pyright](https://microsoft.github.io/pyright/img/pyright_badge.svg)](https://microsoft.github.io/pyright/) [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
 
 # awpy
@@ -17,25 +19,26 @@ The `awpy` package provides data parsing, analytics and visualization capabiliti
 
 ## Setup
 #### Requirements
-`awpy` requires [Python](https://www.python.org/downloads/) >= 3.8 and [Golang](https://golang.org/dl/) >= 1.17. Python acts as a wrapper for the Go code which parses demofiles.
+`awpy` requires [Python](https://www.python.org/downloads/) >= 3.11 and [Golang](https://golang.org/dl/) >= 1.18. Python acts as a wrapper for the Go code which parses demofiles.
 
 #### Installation
-To install `awpy`, you can run 
+To install `awpy`, you can run
 
 ```
 pip install awpy
 ```
 
-To update the library, just run the command again. For more help, you can visit the installation channel in [our Discord](https://discord.gg/W34XjsSs2H).
+To update the library, just run `pip install --upgrade awpy`. For more help, you can visit the installation channel in [our Discord](https://discord.gg/W34XjsSs2H).
 
 #### Colab Notebook
-Do your work in Colab? No problem, the `awpy` Python library runs there, too. Check out how to [setup awpy Python library in Google Colab](https://colab.research.google.com/drive/1xiXeWHSAlqYNa-xjSK9B2xalvLMpIlJF?usp=sharing).
+Do you work in Google Colab? No problem, the `awpy` Python library runs there, too! Check out how to [setup awpy Python library in Google Colab](https://colab.research.google.com/drive/1xiXeWHSAlqYNa-xjSK9B2xalvLMpIlJF?usp=sharing).
 
 ## Example Code
 Using the `awpy` package is straightforward. Just grab a demofile and have output in a JSON or Pandas DataFrame in a few seconds. Use the example below to get started.
 
 ```python
 from awpy import DemoParser
+from awpy.analytics.stats import player_stats
 
 # Set the parse_rate equal to the tick rate at which you would like to parse the frames of the demo.
 # This parameter only matters if parse_frames=True ()
@@ -63,6 +66,8 @@ data["matchmakingRanks"]
 data["playerConnections"]
 data["gameRounds"] # From this value, you can extract player events via: data['gameRounds'][i]['kills'], etc.
 
+player_stats(data["gameRounds"])  # You can create a dictionary of player stats over a list of rounds
+
 # You can also parse the data into dataframes using
 data_df = demo_parser.parse(return_type="df")
 
@@ -83,13 +88,14 @@ Take a look at the following Jupyter notebooks provided in our `examples/` direc
 - [Basic CSGO analysis](https://github.com/pnxenopoulos/awpy/blob/main/examples/01_Basic_CSGO_Analysis.ipynb)
 - [Basic CSGO visualization](https://github.com/pnxenopoulos/awpy/blob/main/examples/02_Basic_CSGO_Visualization.ipynb)
 - [Working with navigation meshes](https://github.com/pnxenopoulos/awpy/blob/main/examples/03_Working_with_Navigation_Meshes.ipynb)
+- [Advanced navigation functionality](https://github.com/pnxenopoulos/awpy/blob/main/examples/04_Advanced_Navigation_Functionality.ipynb)
 
 If you use the parser for any analysis on Twitter, we kindly ask you to link to this repository, so that others may know how you parsed your data. If you have a paper or project that uses the parser, please let us know in Discord so we can add it!
 
 ## Contributing
 We welcome any contributions from the community. You can visit the [issue page](https://github.com/pnxenopoulos/awpy/issues) to see what issues are still open, or you can message on Discord. We will always have a need for writing tests, quality assurance and expanding functionality. We also seek contributors to produce interesting content (such as tweets, analyses, papers, etc.) -- you can see more examples of community content [here](https://awpy.readthedocs.io/en/latest/projects.html).
 
-When contributing code, be sure to lint your code using `black`, run the tests using `pytest`, and add any documentation (main module are automatically covered, just make sure you write the documentation in the function).
+When contributing code, be sure to lint your code using `black`, run the tests using `pytest`, and add any documentation (main modules are automatically covered, just make sure you write the documentation in the function).
 
 ## Structure
 `awpy` is structured as follows:
@@ -111,4 +117,8 @@ This project is made possible by the amazing work done in the [demoinfocs-golang
 
 Big shoutout to [SimpleRadar](https://readtldr.gg/simpleradar?utm_source=github&utm_id=xenos-csgo-parser) for allowing use of their map images.
 
-Special thanks to [arjun-22](https://github.com/arjun-22) for his work on the stats module and expanding test coverage. Additional thanks to those of you in the Discord community who file bug reports and test awpy thoroughly.
+Special thanks to [arjun-22](https://github.com/arjun-22) for his work on the initial stats module, expanding test coverage, and quality assurance checks.
+
+Thanks to [Jan-Eric](https://github.com/JanEricNitschke) for his contributions extending the navigation functionality, greatly expanding test coverage and fixing bugs.
+
+Additional thanks to those of you in the Discord community who file bug reports and test awpy thoroughly.
