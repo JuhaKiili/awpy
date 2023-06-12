@@ -1,23 +1,46 @@
+"""Tests stats module."""
 import json
+import numbers
+import os
+from math import isclose
+
 import pandas as pd
-import pytest
 import requests
 
-from awpy.parser import DemoParser
 from awpy.analytics.stats import player_stats
+from awpy.parser import DemoParser
+
+
+def weighted_avg(
+    metric: str, weighting_metric: str, stats_t: dict, stats_ct: dict
+) -> float:
+    """Calculates the weighted average.
+
+    Between stats_t and stats_ct for the value of
+    'metric' weighted by 'weighting_metric'.
+    """
+    return (
+        (stats_t[metric] * stats_t[weighting_metric])
+        + (stats_ct[metric] * stats_ct[weighting_metric])
+    ) / (stats_t[weighting_metric] + stats_ct[weighting_metric])
 
 
 class TestStats:
     """Class to test the statistics functions.
-    Uses https://www.hltv.org/matches/2337844/astralis-vs-liquid-blast-pro-series-global-final-2019.
+
+    Uses:
+    https://www.hltv.org/matches/2337844/astralis-vs-liquid-blast-pro-series-global-final-2019.
     """
 
     def setup_class(self):
         """Sets up class by defining the parser, filters, and dataframes."""
-        with open("tests/test_data.json") as f:
+        with open("tests/test_data.json", encoding="utf-8") as f:
             self.demo_data = json.load(f)
-        r = requests.get(self.demo_data["astralis-vs-liquid-m2-nuke"]["url"])
-        open("astralis-vs-liquid-m2-nuke" + ".dem", "wb").write(r.content)
+        r = requests.get(
+            self.demo_data["astralis-vs-liquid-m2-nuke"]["url"], timeout=100
+        )
+        with open("astralis-vs-liquid-m2-nuke.dem", "wb") as demo_file:
+            demo_file.write(r.content)
         self.parser = DemoParser(
             demofile="astralis-vs-liquid-m2-nuke.dem",
             demo_id="test",
@@ -26,209 +49,543 @@ class TestStats:
         )
         self.data = self.parser.parse(clean=True)
 
-    def test_player_stats(self):
-        """Tests player stats generation"""
+    def teardown_class(self):
+        """Set parser to none."""
+        self.parser = None
+        self.data = None
+        files_in_directory = os.listdir()
+        if filtered_files := [
+            file for file in files_in_directory if file.endswith((".dem", ".json"))
+        ]:
+            for f in filtered_files:
+                os.remove(f)
+
+    def test_player_stats_both_json(self):
+        """Tests json generation of player stats for both sides."""
         stats = player_stats(self.data["gameRounds"])
-        assert stats[76561197995889730]["kills"] == 19
-        assert stats[76561197995889730]["assists"] == 1
-        assert stats[76561197995889730]["flashAssists"] == 0
-        assert stats[76561197995889730]["deaths"] == 17
-        assert stats[76561197995889730]["adr"] == 63.6
-        assert stats[76561197995889730]["rating"] == 1.03
-        assert stats[76561197995889730]["kast"] == 67.9
-        assert stats[76561197995889730]["firstKills"] == 2
-        assert stats[76561197995889730]["firstDeaths"] == 2
-        assert stats[76561197995889730]["teamName"] == "Team Liquid"
-        assert stats[76561197995889730]["playerName"] == "nitr0"
+        assert isinstance(stats, dict)
+        assert stats["76561197995889730"]["kills"] == 19
+        assert stats["76561197995889730"]["totalRounds"] == 28
+        assert stats["76561197995889730"]["hs"] == 16
+        assert stats["76561197995889730"]["assists"] == 1
+        assert stats["76561197995889730"]["flashAssists"] == 0
+        assert stats["76561197995889730"]["deaths"] == 17
+        assert stats["76561197995889730"]["adr"] == 63.6
+        assert stats["76561197995889730"]["rating"] == 1.03
+        assert stats["76561197995889730"]["kast"] == 67.9
+        assert stats["76561197995889730"]["firstKills"] == 2
+        assert stats["76561197995889730"]["firstDeaths"] == 2
+        assert stats["76561197995889730"]["teamName"] == "Team Liquid"
+        assert stats["76561197995889730"]["playerName"] == "nitr0"
+
+        assert stats["76561197990682262"]["playerName"] == "Xyp9x"
+        assert stats["76561197990682262"]["attempts1v5"] == 5
+        assert stats["76561197990682262"]["success1v5"] == 0
+        assert stats["76561197990682262"]["attempts1v1"] == 2
+        assert stats["76561197990682262"]["success1v1"] == 2
+        assert stats["76561197990682262"]["kills5"] == 0
+
+        assert stats["76561197987713664"]["playerName"] == "device"
+        assert stats["76561197987713664"]["kills5"] == 1
+        assert stats["76561197987713664"]["tradeKills"] == 5
+        assert stats["76561197987713664"]["tradedDeaths"] == 5
+
+    def test_player_stats_both_df(self):
+        """Tests player stats generation for df."""
         stats_df = player_stats(self.data["gameRounds"], return_type="df")
-        assert type(stats_df) == pd.DataFrame
+        assert isinstance(stats_df, pd.DataFrame)
 
-    # def test_extract_num_filters(self):
-    #     """Tests extract_num_filters function."""
-    #     assert extract_num_filters({"Kills": ["==3"]}, "Kills") == (["=="], [3.0])
-    #     assert extract_num_filters({"Kills": [">1", "<5"]}, "Kills") == (
-    #         [">", "<"],
-    #         [1.0, 5.0],
-    #     )
+    def test_player_stats_ct(self):
+        """Tests json generation of player stats for ct."""
+        stats_ct = player_stats(self.data["gameRounds"], selected_side="ct")
+        assert isinstance(stats_ct, dict)
+        assert stats_ct["76561197995889730"]["kills"] == 14
+        assert stats_ct["76561197995889730"]["totalRounds"] == 15
+        assert stats_ct["76561197995889730"]["hs"] == 12
+        assert stats_ct["76561197995889730"]["assists"] == 0
+        assert stats_ct["76561197995889730"]["flashAssists"] == 0
+        assert stats_ct["76561197995889730"]["deaths"] == 7
+        assert stats_ct["76561197995889730"]["adr"] == 84.9
+        assert stats_ct["76561197995889730"]["kast"] == 80.0
+        assert stats_ct["76561197995889730"]["firstKills"] == 2
+        assert stats_ct["76561197995889730"]["firstDeaths"] == 0
+        assert stats_ct["76561197995889730"]["teamName"] == "Team Liquid"
+        assert stats_ct["76561197995889730"]["playerName"] == "nitr0"
 
-    # def test_extract_num_filters_invalid_type(self):
-    #     """Tests extract_num_filters function with an invalid numeric filter."""
-    #     with pytest.raises(ValueError):
-    #         extract_num_filters(self.invalid_numeric_filter, "Kills")
+    def test_player_stats_t(self):
+        """Tests json generation of player stats for t."""
+        stats_t = player_stats(self.data["gameRounds"], selected_side="T")
+        assert isinstance(stats_t, dict)
+        assert stats_t["76561197995889730"]["kills"] == 5
+        assert stats_t["76561197995889730"]["totalRounds"] == 13
+        assert stats_t["76561197995889730"]["hs"] == 4
+        assert stats_t["76561197995889730"]["assists"] == 1
+        assert stats_t["76561197995889730"]["flashAssists"] == 0
+        assert stats_t["76561197995889730"]["deaths"] == 10
+        assert stats_t["76561197995889730"]["adr"] == 38.9
+        assert stats_t["76561197995889730"]["kast"] == 53.8
+        assert stats_t["76561197995889730"]["firstKills"] == 0
+        assert stats_t["76561197995889730"]["firstDeaths"] == 2
+        assert stats_t["76561197995889730"]["teamName"] == "Team Liquid"
+        assert stats_t["76561197995889730"]["playerName"] == "nitr0"
 
-    # def test_extract_num_filters_invalid_operator(self):
-    #     """Tests extract_num_filters function with an invalid logical operator."""
-    #     with pytest.raises(Exception):
-    #         extract_num_filters(self.invalid_logical_operator, "Kills")
+    def test_player_stats_sum(self):
+        """Tests that ct and t stats sum to total."""
+        stats = player_stats(self.data["gameRounds"])
+        stats_t = player_stats(self.data["gameRounds"], selected_side="T")
+        stats_ct = player_stats(self.data["gameRounds"], selected_side="CT")
+        for player in stats:
+            for metric in stats[player]:
+                total_value = stats[player][metric]
+                t_value = stats_t[player][metric]
+                ct_value = stats_ct[player][metric]
+                # All numerical purely cummulative values should add up
+                if isinstance(total_value, numbers.Number) and metric not in {
+                    "kast",
+                    "rating",
+                    "adr",
+                    "accuracy",
+                    "isBot",
+                    "kdr",
+                    "hsPercent",
+                    "steamID",
+                }:
+                    # Allow for slight deviation in case of rounding
+                    assert isclose(total_value, (t_value + ct_value), abs_tol=0.11)
+                elif metric in {"steamID", "isBot"}:
+                    assert total_value == t_value
+                    assert total_value == ct_value
+                elif metric in {"playerName", "teamName"}:
+                    assert total_value in {t_value, ct_value}
+                elif metric in {"kast", "adr"}:
+                    assert isclose(
+                        total_value,
+                        weighted_avg(
+                            metric, "totalRounds", stats_t[player], stats_ct[player]
+                        ),
+                        abs_tol=0.11,
+                    )
+                elif metric == "hsPercent":
+                    assert isclose(
+                        total_value,
+                        weighted_avg(
+                            metric, "kills", stats_t[player], stats_ct[player]
+                        ),
+                        abs_tol=0.11,
+                    )
+                elif metric == "kdr":
+                    assert isclose(
+                        total_value,
+                        weighted_avg(
+                            metric, "deaths", stats_t[player], stats_ct[player]
+                        ),
+                        abs_tol=0.11,
+                    )
+                elif metric == "accuracy":
+                    assert isclose(
+                        total_value,
+                        weighted_avg(
+                            metric, "totalShots", stats_t[player], stats_ct[player]
+                        ),
+                        abs_tol=0.11,
+                    )
 
-    # def test_extract_num_filters_invalid_numeric_value(self):
-    #     """Tests extract_num_filters function with an invalid numeric value."""
-    #     with pytest.raises(Exception):
-    #         extract_num_filters(self.invalid_numeric_value, "Kills")
+    def test_suicides(self):
+        """Test that suicides are parsed correctly."""
+        test_rounds = [
+            {
+                "roundNum": 1,
+                "isWarmup": False,
+                "startTick": 17374,
+                "freezeTimeEndTick": 18898,
+                "endTick": 26021,
+                "endOfficialTick": 26910,
+                "bombPlantTick": 22924,
+                "tScore": 0,
+                "ctScore": 0,
+                "endTScore": 1,
+                "endCTScore": 0,
+                "ctTeam": "team_-Fuchshenger",
+                "tTeam": "team_Sunk3r",
+                "winningSide": "T",
+                "winningTeam": "team_Sunk3r",
+                "losingTeam": "team_-Fuchshenger",
+                "roundEndReason": "TerroristsWin",
+                "ctFreezeTimeEndEqVal": 3850,
+                "ctRoundStartEqVal": 1000,
+                "ctRoundSpendMoney": 3500,
+                "ctBuyType": "Full Eco",
+                "tFreezeTimeEndEqVal": 4250,
+                "tRoundStartEqVal": 1000,
+                "tRoundSpendMoney": 3250,
+                "tBuyType": "Full Eco",
+                "ctSide": {
+                    "teamName": "team_-Fuchshenger",
+                    "players": [
+                        {"playerName": "-Fuchshenger", "steamID": 76561199002916187},
+                        {"playerName": "MAKARxJESUS", "steamID": 76561198144899828},
+                        {"playerName": "XCSy", "steamID": 76561198366282668},
+                        {"playerName": "__NIKI_", "steamID": 76561198318595189},
+                        {"playerName": "Flubykiller", "steamID": 76561198118383015},
+                    ],
+                },
+                "tSide": {
+                    "teamName": "team_Sunk3r",
+                    "players": [
+                        {"playerName": "Sunk3r", "steamID": 76561198173639909},
+                        {"playerName": "SlaynThemAll", "steamID": 76561198156162722},
+                        {"playerName": "Afflic", "steamID": 76561198256616745},
+                        {"playerName": "yngtired", "steamID": 76561198853008998},
+                        {"playerName": "JanEric1", "steamID": 76561198049899734},
+                    ],
+                },
+                "kills": [
+                    {
+                        "tick": 21548,
+                        "seconds": 20.866141732283463,
+                        "clockTime": "01:35",
+                        "attackerSteamID": 76561198049899734,
+                        "attackerName": "JanEric1",
+                        "attackerTeam": "team_Sunk3r",
+                        "attackerSide": "T",
+                        "attackerX": 1623.4302978515625,
+                        "attackerY": 1222.76708984375,
+                        "attackerZ": 161.6575927734375,
+                        "attackerViewX": 337.1978759765625,
+                        "attackerViewY": 0.274658203125,
+                        "victimSteamID": 76561198049899734,
+                        "victimName": "JanEric1",
+                        "victimTeam": "team_Sunk3r",
+                        "victimSide": "T",
+                        "victimX": 1623.4302978515625,
+                        "victimY": 1222.76708984375,
+                        "victimZ": 161.6575927734375,
+                        "victimViewX": 337.1978759765625,
+                        "victimViewY": 0.274658203125,
+                        "assisterSteamID": 76561198173639909,
+                        "assisterName": "Sunk3r",
+                        "assisterTeam": "team_Sunk3r",
+                        "assisterSide": "T",
+                        "isSuicide": True,
+                        "isTeamkill": False,
+                        "isWallbang": False,
+                        "penetratedObjects": 0,
+                        "isFirstKill": True,
+                        "isHeadshot": True,
+                        "victimBlinded": False,
+                        "attackerBlinded": False,
+                        "flashThrowerSteamID": None,
+                        "flashThrowerName": None,
+                        "flashThrowerTeam": None,
+                        "flashThrowerSide": None,
+                        "noScope": False,
+                        "thruSmoke": False,
+                        "distance": 714.3147783842128,
+                        "isTrade": False,
+                        "playerTradedName": None,
+                        "playerTradedTeam": None,
+                        "playerTradedSteamID": None,
+                        "weapon": "Glock-18",
+                        "weaponClass": "Pistols",
+                    },
+                ],
+                "damages": [],
+                "weaponFires": [],
+                "flashes": [],
+                "grenades": [],
+                "bombEvents": [],
+            }
+        ]
+        stats = player_stats(test_rounds)
+        assert stats["76561198049899734"]["suicides"] == 1
 
-    # def test_check_filters_invalid_str_filters(self):
-    #     """Tests check_filters function with an invalid string filter."""
-    #     with pytest.raises(ValueError):
-    #         check_filters(self.kill_data, self.invalid_str_filter)
+    def test_player_timeout(self):
+        """Test that timed out players do not crash."""
+        test_rounds = [
+            {
+                "ctSide": {
+                    "teamName": "team_-Fuchshenger",
+                    "players": [
+                        {"playerName": "-Fuchshenger", "steamID": 76561199002916187},
+                    ],
+                },
+                "tSide": {
+                    "teamName": "team_Sunk3r",
+                    "players": [
+                        {"playerName": "Sunk3r", "steamID": 76561198173639909},
+                    ],
+                },
+                "kills": [],
+                "damages": [],
+                "weaponFires": [],
+                "flashes": [],
+                "grenades": [],
+                "bombEvents": [],
+            },
+            {
+                "ctSide": {
+                    "teamName": "team_-Fuchshenger",
+                    "players": [],
+                },
+                "tSide": {
+                    "teamName": "team_Sunk3r",
+                    "players": [
+                        {"playerName": "Sunk3r", "steamID": 76561198173639909},
+                    ],
+                },
+                "kills": [
+                    {
+                        "tick": 21548,
+                        "seconds": 20.866141732283463,
+                        "clockTime": "01:35",
+                        "attackerSteamID": 76561199002916187,
+                        "attackerName": "-Fuchshenger",
+                        "attackerTeam": "team_Sunk3r",
+                        "attackerSide": "T",
+                        "attackerX": 1623.4302978515625,
+                        "attackerY": 1222.76708984375,
+                        "attackerZ": 161.6575927734375,
+                        "attackerViewX": 337.1978759765625,
+                        "attackerViewY": 0.274658203125,
+                        "victimSteamID": 76561199002916187,
+                        "victimName": "-Fuchshenger",
+                        "victimTeam": "team_Sunk3r",
+                        "victimSide": "T",
+                        "victimX": 1623.4302978515625,
+                        "victimY": 1222.76708984375,
+                        "victimZ": 161.6575927734375,
+                        "victimViewX": 337.1978759765625,
+                        "victimViewY": 0.274658203125,
+                        "assisterSteamID": 76561198173639909,
+                        "assisterName": "Sunk3r",
+                        "assisterTeam": "team_Sunk3r",
+                        "assisterSide": "T",
+                        "isSuicide": True,
+                        "isTeamkill": False,
+                        "isWallbang": False,
+                        "penetratedObjects": 0,
+                        "isFirstKill": True,
+                        "isHeadshot": True,
+                        "victimBlinded": False,
+                        "attackerBlinded": False,
+                        "flashThrowerSteamID": None,
+                        "flashThrowerName": None,
+                        "flashThrowerTeam": None,
+                        "flashThrowerSide": None,
+                        "noScope": False,
+                        "thruSmoke": False,
+                        "distance": 714.3147783842128,
+                        "isTrade": False,
+                        "playerTradedName": None,
+                        "playerTradedTeam": None,
+                        "playerTradedSteamID": None,
+                        "weapon": "Glock-18",
+                        "weaponClass": "Pistols",
+                    },
+                ],
+                "damages": [],
+                "weaponFires": [],
+                "flashes": [],
+                "grenades": [],
+                "bombEvents": [],
+            },
+        ]
+        player_stats(test_rounds)
 
-    # def test_check_filters_invalid_bool_filters(self):
-    #     """Tests check_filters function with an invalid boolean filter."""
-    #     with pytest.raises(ValueError):
-    #         check_filters(self.kill_data, self.invalid_bool_filter)
+    def test_player_stats_none_player_before_clutch(self):
+        """Tests that player stats handles None sides correctly.
 
-    # def test_num_filter_df(self):
-    #     """Tests num_filter_df function."""
-    #     assert num_filter_df(self.hs, "1st Half HS", "==", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] == 3]
-    #     )
-    #     assert num_filter_df(self.hs, "1st Half HS", "!=", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] != 3]
-    #     )
-    #     assert num_filter_df(self.hs, "1st Half HS", "<=", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] <= 3]
-    #     )
-    #     assert num_filter_df(self.hs, "1st Half HS", ">=", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] >= 3]
-    #     )
-    #     assert num_filter_df(self.hs, "1st Half HS", "<", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] < 3]
-    #     )
-    #     assert num_filter_df(self.hs, "1st Half HS", ">", 3.0).equals(
-    #         self.hs.loc[self.hs["1st Half HS"] > 3]
-    #     )
+        Especially in clutch initialization.
+        """
+        test_rounds = [
+            {
+                "roundNum": 1,
+                "isWarmup": False,
+                "startTick": 17374,
+                "freezeTimeEndTick": 18898,
+                "endTick": 26021,
+                "endOfficialTick": 26910,
+                "bombPlantTick": 22924,
+                "tScore": 0,
+                "ctScore": 0,
+                "endTScore": 1,
+                "endCTScore": 0,
+                "ctTeam": "team_-Fuchshenger",
+                "tTeam": "team_Sunk3r",
+                "winningSide": "T",
+                "winningTeam": "team_Sunk3r",
+                "losingTeam": "team_-Fuchshenger",
+                "roundEndReason": "TerroristsWin",
+                "ctFreezeTimeEndEqVal": 3850,
+                "ctRoundStartEqVal": 1000,
+                "ctRoundSpendMoney": 3500,
+                "ctBuyType": "Full Eco",
+                "tFreezeTimeEndEqVal": 4250,
+                "tRoundStartEqVal": 1000,
+                "tRoundSpendMoney": 3250,
+                "tBuyType": "Full Eco",
+                "ctSide": {
+                    "teamName": "team_-Fuchshenger",
+                    "players": None,
+                },
+                "tSide": {
+                    "teamName": "team_Sunk3r",
+                    "players": None,
+                },
+                "kills": [
+                    {
+                        "tick": 21548,
+                        "seconds": 20.866141732283463,
+                        "clockTime": "01:35",
+                        "attackerSteamID": 76561198049899734,
+                        "attackerName": "JanEric1",
+                        "attackerTeam": "team_Sunk3r",
+                        "attackerSide": "T",
+                        "attackerX": 1623.4302978515625,
+                        "attackerY": 1222.76708984375,
+                        "attackerZ": 161.6575927734375,
+                        "attackerViewX": 337.1978759765625,
+                        "attackerViewY": 0.274658203125,
+                        "victimSteamID": 76561198118383015,
+                        "victimName": "Flubykiller",
+                        "victimTeam": "team_Sunk3r",
+                        "victimSide": "CT",
+                        "victimX": 1623.4302978515625,
+                        "victimY": 1222.76708984375,
+                        "victimZ": 161.6575927734375,
+                        "victimViewX": 337.1978759765625,
+                        "victimViewY": 0.274658203125,
+                        "assisterSteamID": 76561198173639909,
+                        "assisterName": "Sunk3r",
+                        "assisterTeam": "team_Sunk3r",
+                        "assisterSide": "T",
+                        "isSuicide": True,
+                        "isTeamkill": False,
+                        "isWallbang": False,
+                        "penetratedObjects": 0,
+                        "isFirstKill": True,
+                        "isHeadshot": True,
+                        "victimBlinded": False,
+                        "attackerBlinded": False,
+                        "flashThrowerSteamID": None,
+                        "flashThrowerName": None,
+                        "flashThrowerTeam": None,
+                        "flashThrowerSide": None,
+                        "noScope": False,
+                        "thruSmoke": False,
+                        "distance": 714.3147783842128,
+                        "isTrade": False,
+                        "playerTradedName": None,
+                        "playerTradedTeam": None,
+                        "playerTradedSteamID": None,
+                        "weapon": "Glock-18",
+                        "weaponClass": "Pistols",
+                    },
+                ],
+                "damages": [],
+                "weaponFires": [],
+                "flashes": [],
+                "grenades": [],
+                "bombEvents": [],
+            }
+        ]
+        player_stats(test_rounds)
 
-    # def test_filter_df(self):
-    #     """Tests filter_df function."""
-    #     assert filter_df(self.kill_data, self.filters).equals(self.filtered_kill_data)
-
-    # def test_calc_stats(self):
-    #     """Tests calc_stats function."""
-    #     assert calc_stats(
-    #         self.kill_data,
-    #         self.filters,
-    #         ["attackerName"],
-    #         ["attackerName"],
-    #         [["size"]],
-    #         ["Astralis Player", "1st Half HS"],
-    #     ).equals(self.hs)
-
-    # def test_accuracy(self):
-    #     """Tests accuracy function."""
-    #     assert (
-    #         round(accuracy(self.damage_data, self.weapon_fire_data)["ACC%"].sum(), 2)
-    #         == 1.83
-    #     )
-
-    # def test_kast(self):
-    #     """Tests kast function."""
-    #     assert round(kast(self.kill_data)["T"].sum(), 2) == 22
-
-    # def test_kill_stats(self):
-    #     """Tests kill_stats function."""
-    #     assert (
-    #         round(
-    #             kill_stats(
-    #                 self.damage_data,
-    #                 self.kill_data,
-    #                 self.round_data,
-    #                 self.weapon_fire_data,
-    #             )["KDR"].sum(),
-    #             2,
-    #         )
-    #         == 10.1
-    #     )
-
-    # def test_adr(self):
-    #     """Tests adr function."""
-    #     assert (
-    #         round(adr(self.damage_data, self.round_data)["Norm ADR"].sum(), 2) == 729.07
-    #     )
-
-    # def test_util_dmg(self):
-    #     """Tests util_dmg function."""
-    #     assert (
-    #         round(util_dmg(self.damage_data, self.grenade_data)["UD Per Nade"].sum(), 2)
-    #         == 48.4
-    #     )
-
-    # def test_flash_stats(self):
-    #     """Tests flash_stats function."""
-    #     assert (
-    #         flash_stats(self.flash_data, self.grenade_data, self.kill_data)["EF"].sum()
-    #         == 114
-    #     )
-
-    # def test_bomb_stats(self):
-    #     """Tests bomb_stats function."""
-    #     assert bomb_stats(self.bomb_data)["Astralis Defuses"].sum() == 8
-
-    # def test_econ_stats(self):
-    #     """Tests econ_stats function."""
-    #     assert econ_stats(self.round_data)["Avg Spend"].sum() == 53371
-
-    # def test_weapon_type(self):
-    #     """Tests weapon_type function."""
-    #     assert weapon_type("Knife") == "Melee Kills"
-    #     assert weapon_type("CZ-75 Auto") == "Pistol Kills"
-    #     assert weapon_type("MAG-7") == "Shotgun Kills"
-    #     assert weapon_type("MAC-10") == "SMG Kills"
-    #     assert weapon_type("AK-47") == "Assault Rifle Kills"
-    #     assert weapon_type("M249") == "Machine Gun Kills"
-    #     assert weapon_type("AWP") == "Sniper Rifle Kills"
-    #     assert weapon_type("Molotov") == "Utility Kills"
-
-    # def test_kill_breakdown(self):
-    #     """Tests kill_breakdown function."""
-    #     assert kill_breakdown(self.kill_data)["Assault Rifle Kills"].sum() == 127
-
-    # def test_util_dmg_breakdown(self):
-    #     """Tests util_dmg_breakdown function."""
-    #     assert (
-    #         round(
-    #             util_dmg_breakdown(self.damage_data, self.grenade_data)[
-    #                 "UD Per Nade"
-    #             ].sum(),
-    #             2,
-    #         )
-    #         == 120.02
-    #     )
-
-    # def test_win_breakdown(self):
-    #     """Tests win_breakdown function."""
-    #     assert win_breakdown(self.round_data)["T CT Elim Wins"].sum() == 6
-
-    # def test_player_box_score(self):
-    #     """Tests player_box_score function."""
-    #     assert (
-    #         player_box_score(
-    #             self.damage_data,
-    #             self.flash_data,
-    #             self.grenade_data,
-    #             self.kill_data,
-    #             self.round_data,
-    #             self.weapon_fire_data,
-    #         )["K"].sum()
-    #         == 179
-    #     )
-
-    # def test_team_box_score(self):
-    #     """Tests team_box_score function."""
-    #     assert (
-    #         team_box_score(
-    #             self.damage_data,
-    #             self.flash_data,
-    #             self.grenade_data,
-    #             self.kill_data,
-    #             self.round_data,
-    #             self.weapon_fire_data,
-    #         )
-    #         .iloc[4]
-    #         .sum()
-    #         == 180
-    #     )
-
-    # def test_rating(self):
-    #     """Tests rating function."""
-    #     rating_df = rating(self.damage_data, self.kill_data, self.round_data)
-    #     assert rating_df.iloc[0].Rating < 1.3
-    #     assert rating_df.iloc[0].Rating > 1.2
+    def test_player_stats_none_player_in_clutch(self):
+        """Tests that player stats handles a side being None correctly in clutches."""
+        test_rounds = [
+            {
+                "roundNum": 1,
+                "isWarmup": False,
+                "startTick": 17374,
+                "freezeTimeEndTick": 18898,
+                "endTick": 26021,
+                "endOfficialTick": 26910,
+                "bombPlantTick": 22924,
+                "tScore": 0,
+                "ctScore": 0,
+                "endTScore": 1,
+                "endCTScore": 0,
+                "ctTeam": "team_-Fuchshenger",
+                "tTeam": "team_Sunk3r",
+                "winningSide": "T",
+                "winningTeam": "team_Sunk3r",
+                "losingTeam": "team_-Fuchshenger",
+                "roundEndReason": "TerroristsWin",
+                "ctFreezeTimeEndEqVal": 3850,
+                "ctRoundStartEqVal": 1000,
+                "ctRoundSpendMoney": 3500,
+                "ctBuyType": "Full Eco",
+                "tFreezeTimeEndEqVal": 4250,
+                "tRoundStartEqVal": 1000,
+                "tRoundSpendMoney": 3250,
+                "tBuyType": "Full Eco",
+                "ctSide": {
+                    "teamName": "team_-Fuchshenger",
+                    "players": [
+                        {"playerName": "-Fuchshenger", "steamID": 76561199002916187},
+                        {"playerName": "Flubykiller", "steamID": 76561198118383015},
+                    ],
+                },
+                "tSide": {
+                    "teamName": "team_Sunk3r",
+                    "players": None,
+                },
+                "kills": [
+                    {
+                        "tick": 21548,
+                        "seconds": 20.866141732283463,
+                        "clockTime": "01:35",
+                        "attackerSteamID": 76561198049899734,
+                        "attackerName": "JanEric1",
+                        "attackerTeam": "team_Sunk3r",
+                        "attackerSide": "T",
+                        "attackerX": 1623.4302978515625,
+                        "attackerY": 1222.76708984375,
+                        "attackerZ": 161.6575927734375,
+                        "attackerViewX": 337.1978759765625,
+                        "attackerViewY": 0.274658203125,
+                        "victimSteamID": 76561198118383015,
+                        "victimName": "Flubykiller",
+                        "victimTeam": "team_Sunk3r",
+                        "victimSide": "CT",
+                        "victimX": 1623.4302978515625,
+                        "victimY": 1222.76708984375,
+                        "victimZ": 161.6575927734375,
+                        "victimViewX": 337.1978759765625,
+                        "victimViewY": 0.274658203125,
+                        "assisterSteamID": 76561198173639909,
+                        "assisterName": "Sunk3r",
+                        "assisterTeam": "team_Sunk3r",
+                        "assisterSide": "T",
+                        "isSuicide": True,
+                        "isTeamkill": False,
+                        "isWallbang": False,
+                        "penetratedObjects": 0,
+                        "isFirstKill": True,
+                        "isHeadshot": True,
+                        "victimBlinded": False,
+                        "attackerBlinded": False,
+                        "flashThrowerSteamID": None,
+                        "flashThrowerName": None,
+                        "flashThrowerTeam": None,
+                        "flashThrowerSide": None,
+                        "noScope": False,
+                        "thruSmoke": False,
+                        "distance": 714.3147783842128,
+                        "isTrade": False,
+                        "playerTradedName": None,
+                        "playerTradedTeam": None,
+                        "playerTradedSteamID": None,
+                        "weapon": "Glock-18",
+                        "weaponClass": "Pistols",
+                    },
+                ],
+                "damages": [],
+                "weaponFires": [],
+                "flashes": [],
+                "grenades": [],
+                "bombEvents": [],
+            }
+        ]
+        player_stats(test_rounds)
