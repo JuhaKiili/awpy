@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	dem "github.com/markus-wa/demoinfocs-golang/v3/pkg/demoinfocs"
-	common "github.com/markus-wa/demoinfocs-golang/v3/pkg/demoinfocs/common"
-	events "github.com/markus-wa/demoinfocs-golang/v3/pkg/demoinfocs/events"
+	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
+	common "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
+	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
 )
 
 const unknown = "Unknown"
@@ -368,6 +368,7 @@ type BombInfo struct {
 
 // Projectile.
 type GrenadeInfo struct {
+	UniqueID       int64   `json:"uniqueID"`
 	ProjectileType string  `json:"projectileType"`
 	X              float64 `json:"x"`
 	Y              float64 `json:"y"`
@@ -2007,14 +2008,15 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentFrame.Projectiles = []GrenadeInfo{}
 			for _, ele := range allGrenades {
 				if ele != nil {
-					currentFire := Fire{}
-					objPos := ele.Entity.Position()
-					currentFire.UniqueID = ele.UniqueID()
-
-					currentFire.X = objPos.X
-					currentFire.Y = objPos.Y
-					currentFire.Z = objPos.Z
-					currentFrame.Fires = append(currentFrame.Fires, currentFire)
+					currentProjectile := GrenadeInfo{}
+					currentProjectile.ProjectileType = ele.WeaponInstance.String()
+					objPos := ele.Trajectory[len(ele.Trajectory)-1]
+	
+					currentProjectile.X = objPos.X
+					currentProjectile.Y = objPos.Y
+					currentProjectile.Z = objPos.Z
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
 			}
 
@@ -2483,6 +2485,7 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 				currentProjectile.X = objPos.X
 				currentProjectile.Y = objPos.Y
 				currentProjectile.Z = objPos.Z
+				currentProjectile.UniqueID = ele.UniqueID()
 				currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 			}
 
