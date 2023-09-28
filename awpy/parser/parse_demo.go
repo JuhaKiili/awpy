@@ -2400,6 +2400,11 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 	(*demoParser).RegisterEventHandler(func(e events.FrameDone) {
 		gs := (*demoParser).GameState()
 
+		currentGame.ClientName = (*demoParser).Header().ClientName
+		currentGame.Map = (*demoParser).Header().MapName
+		currentGame.PlaybackTicks = int64((*demoParser).Header().PlaybackTicks)
+		currentGame.PlaybackFrames = int64((*demoParser).Header().PlaybackFrames)
+
 		// If the game says we are not in freeze time anymore
 		// but the toggle still thinks we are then correct the toggle
 		if !inFreezeTimeFromGameRules(&gs) && (*roundInFreezetime != 0) {
