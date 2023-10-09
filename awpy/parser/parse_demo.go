@@ -2775,11 +2775,21 @@ func main() {
 	currentGame.Rounds = append(currentGame.Rounds, currentRound)
 
 	// CSGOLENS: Early CS2 support hack
-	// Check if the second round has negative start tick and correct it to the first round endtick
+	// Check if the second round has negative start tick
 	if len(currentGame.Rounds) > 1 {
 		if currentGame.Rounds[1].StartTick < 0 {
-			currentGame.Rounds[1].StartTick = currentGame.Rounds[0].FreezeTimeEndTick + 1
+			currentGame.Rounds[1].StartTick = currentGame.Rounds[0].EndTick + 1
 		}
+	}
+
+	// Print out all the round start and end ticks
+	for i := range currentGame.Rounds {
+		logger.Println("Round", i+1)
+		logger.Println("roundnum:", currentGame.Rounds[i].RoundNum)
+		logger.Println("start tick:", currentGame.Rounds[i].StartTick)
+		logger.Println("end tick:", currentGame.Rounds[i].EndTick)
+		logger.Println("FreezeTimeEndTick:", currentGame.Rounds[i].FreezeTimeEndTick)
+		logger.Println("warmup:", currentGame.Rounds[i].IsWarmup)
 	}
 
 	// Clean rounds

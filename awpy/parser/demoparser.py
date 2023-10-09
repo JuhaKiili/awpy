@@ -1182,24 +1182,29 @@ class DemoParser:
             # Remove warmups where the demo may have started recording
             # in the middle of a warmup round
             if "warmupChanged" in self.json["matchPhases"]:
-                if (
-                    self.json["matchPhases"]["warmupChanged"] is not None
-                    and len(self.json["matchPhases"]["warmupChanged"]) > 1
-                ):
-                    last_warmup_changed = self.json["matchPhases"]["warmupChanged"][1]
-                    for game_round in self.json["gameRounds"] or []:
-                        if (game_round["startTick"] > last_warmup_changed) and (
-                            not game_round["isWarmup"]
-                        ):
-                            cleaned_rounds.append(game_round)
-                        if game_round["startTick"] == last_warmup_changed:
-                            cleaned_rounds.append(game_round)
-                else:
-                    cleaned_rounds.extend(
-                        game_round
-                        for game_round in self.json["gameRounds"] or []
-                        if not game_round["isWarmup"]
-                    )
+                # CSGOLENS: Early CS2 support hack
+                # The warmup changed event seems to not work as expected
+                # Commenting this if block out for now
+
+                # if (
+                #     self.json["matchPhases"]["warmupChanged"] is not None
+                #     and len(self.json["matchPhases"]["warmupChanged"]) > 1
+                # ):
+                #     last_warmup_changed = self.json["matchPhases"]["warmupChanged"][1]
+                #     for game_round in self.json["gameRounds"] or []:
+                #         if (game_round["startTick"] > last_warmup_changed) and (
+                #             not game_round["isWarmup"]
+                #         ):
+                #             cleaned_rounds.append(game_round)
+                #         if game_round["startTick"] == last_warmup_changed:
+                #             cleaned_rounds.append(game_round)
+                # else:
+                
+                cleaned_rounds.extend(
+                    game_round
+                    for game_round in self.json["gameRounds"] or []
+                    if not game_round["isWarmup"]
+                )
             self.json["gameRounds"] = cleaned_rounds
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
