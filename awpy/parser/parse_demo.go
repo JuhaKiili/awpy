@@ -2774,6 +2774,14 @@ func main() {
 	// Add the most recent round
 	currentGame.Rounds = append(currentGame.Rounds, currentRound)
 
+	// CSGOLENS: Early CS2 support hack
+	// Check if the second round has negative start tick and correct it to the first round endtick
+	if len(currentGame.Rounds) > 1 {
+		if currentGame.Rounds[1].StartTick < 0 {
+			currentGame.Rounds[1].StartTick = currentGame.Rounds[0].FreezeTimeEndTick + 1
+		}
+	}
+
 	// Clean rounds
 	if len(currentGame.Rounds) > 0 {
 		cleanAndWriteGame(&currentGame, jsonIndentation, outpath)
