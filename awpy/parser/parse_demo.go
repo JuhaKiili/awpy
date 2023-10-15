@@ -691,19 +691,19 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 	}
 
 	playerPos := p.LastAlivePosition
-	playerEyePos := p.PositionEyes()
-	playerVel := p.Velocity()
+	//playerEyePos := p.PositionEyes()
+	// playerVel := p.Velocity()
 
 	// Calc other metrics
 	currentPlayer.X = playerPos.X
 	currentPlayer.Y = playerPos.Y
 	currentPlayer.Z = playerPos.Z
-	currentPlayer.EyeX = playerEyePos.X
-	currentPlayer.EyeY = playerEyePos.Y
-	currentPlayer.EyeZ = playerEyePos.Z
-	currentPlayer.VelX = playerVel.X
-	currentPlayer.VelY = playerVel.Y
-	currentPlayer.VelZ = playerVel.Z
+	// currentPlayer.EyeX = playerEyePos.X
+	// currentPlayer.EyeY = playerEyePos.Y
+	// currentPlayer.EyeZ = playerEyePos.Z
+	// currentPlayer.VelX = playerVel.X
+	// currentPlayer.VelY = playerVel.Y
+	// currentPlayer.VelZ = playerVel.Z
 	currentPlayer.ViewX = float64(p.ViewDirectionX())
 	currentPlayer.ViewY = float64(p.ViewDirectionY())
 	currentPlayer.LastPlaceName = p.LastPlaceName()
@@ -2769,6 +2769,14 @@ func main() {
 		&roundInEndTime, &currentFrameIdx, &parseFrames, &globalFrameIndex)
 	// Parse demofile to end
 	err = p.ParseToEnd()
+	//logger.Println("Parsing complete")
+	// print errors
+	
+	// if err, log it
+	if err != nil {
+		logger.Println(err)
+	}
+
 	currentGame.ParsedToFrame = int64(p.CurrentFrame())
 
 	// Add the most recent round
@@ -2783,14 +2791,17 @@ func main() {
 	}
 
 	// Print out all the round start and end ticks
-	for i := range currentGame.Rounds {
-		logger.Println("Round", i+1)
-		logger.Println("roundnum:", currentGame.Rounds[i].RoundNum)
-		logger.Println("start tick:", currentGame.Rounds[i].StartTick)
-		logger.Println("end tick:", currentGame.Rounds[i].EndTick)
-		logger.Println("FreezeTimeEndTick:", currentGame.Rounds[i].FreezeTimeEndTick)
-		logger.Println("warmup:", currentGame.Rounds[i].IsWarmup)
-	}
+	// for i := range currentGame.Rounds {
+	// 	logger.Println("Round", i+1)
+	// 	logger.Println("roundnum:", currentGame.Rounds[i].RoundNum)
+	// 	logger.Println("start tick:", currentGame.Rounds[i].StartTick)
+	// 	logger.Println("end tick:", currentGame.Rounds[i].EndTick)
+	// 	logger.Println("FreezeTimeEndTick:", currentGame.Rounds[i].FreezeTimeEndTick)
+	// 	logger.Println("warmup:", currentGame.Rounds[i].IsWarmup)
+	// }
+
+	// Print round count
+	logger.Println("Raw round count:", len(currentGame.Rounds))
 
 	// Clean rounds
 	if len(currentGame.Rounds) > 0 {
