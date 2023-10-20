@@ -1133,6 +1133,34 @@ class DemoParser:
             self.logger.error(msg)
             raise AttributeError(msg)
 
+    def findFirstDeadPlayer(self, game_round):
+        firstDied = None
+        for frame in game_round.get("frames", []):
+            for side in ("t", "ct"):
+                for player in frame[side]["players"]:
+                    if not player["isAlive"]:
+                        if firstDied is None:
+                            firstDied = player["steamID"]
+                            return firstDied
+                        elif player["steamID"] < firstDied:
+                            firstDied = player["steamID"]
+                            return firstDied
+        return firstDied
+    
+    def remove_player_from_round(self, game_round, removed_steamID):
+        # Remove player from game_round["t"] and game_round["ct"]
+        for side in ("tSide", "ctSide"):
+            for player in game_round[side]["players"]:
+                if player["steamID"] == removed_steamID:
+                    game_round[side]["players"].remove(player)
+
+        # Remove player from all the frames
+        for frame in game_round.get("frames", []):
+            for side in ("t", "ct"):
+                for player in frame[side]["players"]:
+                    if player["steamID"] == removed_steamID:
+                        frame[side]["players"].remove(player)
+
     def remove_excess_players(self) -> None:
         """Removes rounds where there are more than 5 players on a side.
 
@@ -1165,6 +1193,16 @@ class DemoParser:
                         for player_list in player_lists
                     ) and any(player_list is not None for player_list in player_lists):
                         cleaned_rounds.append(game_round)
+                    else:
+                        # CSGOLENS: Early CS2 support hack
+                        # Some tools add a bot player and kill them off
+                        # Find the player who dies first and remove them
+                        firstDied = self.findFirstDeadPlayer(game_round)
+                        if firstDied:
+                            self.remove_player_from_round(game_round, firstDied)
+                            cleaned_rounds.append(game_round)
+                            print("Extra player found and removed: " + str(firstDied))
+
                 self.json["gameRounds"] = cleaned_rounds
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
