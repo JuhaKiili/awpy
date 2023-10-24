@@ -1157,9 +1157,10 @@ class DemoParser:
         # Remove player from all the frames
         for frame in game_round.get("frames", []):
             for side in ("t", "ct"):
-                for player in frame[side]["players"]:
-                    if player["steamID"] == removed_steamID:
-                        frame[side]["players"].remove(player)
+                if side in frame and frame[side] is not None and "players" in frame[side] and frame[side]["players"] is not None:
+                    for player in frame[side]["players"]:
+                        if player["steamID"] == removed_steamID:
+                            frame[side]["players"].remove(player)
 
     def remove_excess_players(self) -> None:
         """Removes rounds where there are more than 5 players on a side.
