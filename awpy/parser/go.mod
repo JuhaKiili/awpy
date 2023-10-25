@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/markus-wa/demoinfocs-golang/v3 v3.3.0
-	github.com/markus-wa/demoinfocs-golang/v4 v4.0.0-beta.2.0.20231015084944-2c9b7f9a751b
+	github.com/markus-wa/demoinfocs-golang/v4 v4.0.0-beta.5
 )
 
 require (
