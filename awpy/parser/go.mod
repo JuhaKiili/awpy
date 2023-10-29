@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/markus-wa/demoinfocs-golang/v3 v3.3.0
 	github.com/markus-wa/demoinfocs-golang/v4 v4.0.0-beta.5
+//github.com/markus-wa/demoinfocs-golang/v4 v4.0.0-beta.5
 )
 
 require (
@@ -19,5 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
+
+replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.0-beta.5.cs2lens-fix1
 
 //replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang
