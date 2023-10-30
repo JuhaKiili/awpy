@@ -1125,7 +1125,7 @@ class DemoParser:
                 cleaned_rounds = [
                     game_round
                     for game_round in self.json["gameRounds"] or []
-                    if len(game_round["frames"] or []) > 0
+                    if len(game_round["frames"] or []) > 10 # CSGOLENS: Reasonable round always has more than 10 frames
                 ]
                 self.json["gameRounds"] = cleaned_rounds
         else:
@@ -1178,7 +1178,8 @@ class DemoParser:
             else:
                 cleaned_rounds = []
                 # Remove rounds where the number of players is too large
-                n_players = 5
+                max_players = 5
+                min_players = 3
                 for game_round in self.json["gameRounds"] or []:
                     if not game_round["frames"]:
                         continue
@@ -1188,9 +1189,10 @@ class DemoParser:
                         game_frame["ct"]["players"],
                     )
                     # Remove if any side has > 5 players
+                    # CSGOLENS: Remove if any side has less than 3 players
                     # Remove if both sides are None
                     if all(
-                        len(player_list or []) <= n_players
+                        len(player_list or []) <= max_players and len(player_list or []) >= min_players
                         for player_list in player_lists
                     ) and any(player_list is not None for player_list in player_lists):
                         cleaned_rounds.append(game_round)
