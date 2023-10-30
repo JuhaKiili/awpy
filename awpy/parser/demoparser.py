@@ -1125,7 +1125,7 @@ class DemoParser:
                 cleaned_rounds = [
                     game_round
                     for game_round in self.json["gameRounds"] or []
-                    if len(game_round["frames"] or []) > 10 # CSGOLENS: Reasonable round always has more than 10 frames
+                    if len(game_round["frames"] or []) > 0 # CSGOLENS: Reasonable round always has more than 10 frames
                 ]
                 self.json["gameRounds"] = cleaned_rounds
         else:
@@ -1133,18 +1133,17 @@ class DemoParser:
             self.logger.error(msg)
             raise AttributeError(msg)
 
-    def findFirstDeadPlayer(self, game_round):
+    def findFirstDeadPlayer(self, game_round, side):
         firstDied = None
         for frame in game_round.get("frames", []):
-            for side in ("t", "ct"):
-                for player in frame[side]["players"]:
-                    if not player["isAlive"]:
-                        if firstDied is None:
-                            firstDied = player["steamID"]
-                            return firstDied
-                        elif player["steamID"] < firstDied:
-                            firstDied = player["steamID"]
-                            return firstDied
+            for player in frame[side]["players"]:
+                if not player["isAlive"]:
+                    if firstDied is None:
+                        firstDied = player["steamID"]
+                        return firstDied
+                    elif player["steamID"] < firstDied:
+                        firstDied = player["steamID"]
+                        return firstDied
         return firstDied
     
     def remove_player_from_round(self, game_round, removed_steamID):
@@ -1188,23 +1187,27 @@ class DemoParser:
                         game_frame["t"]["players"],
                         game_frame["ct"]["players"],
                     )
+
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
                     # Remove if both sides are None
+                    if len(player_lists[0]) == 6:
+                        firstDied = self.findFirstDeadPlayer(game_round, "t")
+                        if firstDied:
+                            self.remove_player_from_round(game_round, firstDied)
+                            print(f"Round {game_round['roundNum']}: Extra player found and removed from T {str(firstDied)}")
+
+                    if len(player_lists[1]) == 6:
+                        firstDied = self.findFirstDeadPlayer(game_round, "ct")
+                        if firstDied:
+                            self.remove_player_from_round(game_round, firstDied)
+                            print(f"Round {game_round['roundNum']}: Extra player found and removed from CT {str(firstDied)}")
                     if all(
                         len(player_list or []) <= max_players and len(player_list or []) >= min_players
                         for player_list in player_lists
                     ) and any(player_list is not None for player_list in player_lists):
+                        print(f"Round {game_round['roundNum']}: Has accepted player counts")
                         cleaned_rounds.append(game_round)
-                    else:
-                        # CSGOLENS: Early CS2 support hack
-                        # Some tools add a bot player and kill them off
-                        # Find the player who dies first and remove them
-                        firstDied = self.findFirstDeadPlayer(game_round)
-                        if firstDied:
-                            self.remove_player_from_round(game_round, firstDied)
-                            cleaned_rounds.append(game_round)
-                            print("Extra player found and removed: " + str(firstDied))
 
                 self.json["gameRounds"] = cleaned_rounds
         else:
