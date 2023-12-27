@@ -1191,24 +1191,34 @@ class DemoParser:
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
                     # Remove if both sides are None
-                    if len(player_lists[0]) == 6:
+                    max_loops = 10
+                    loop = 0
+                    while len(player_lists[0]) > 5 and loop < max_loops:
+                        loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "t")
                         if firstDied:
                             self.remove_player_from_round(game_round, firstDied)
                             print(f"Round {game_round['roundNum']}: Extra player found and removed from T {str(firstDied)}")
-
-                    if len(player_lists[1]) == 6:
+                        else:
+                            break
+                
+                    loop = 0
+                    while len(player_lists[1]) > 5 and loop < max_loops:
+                        loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "ct")
                         if firstDied:
                             self.remove_player_from_round(game_round, firstDied)
                             print(f"Round {game_round['roundNum']}: Extra player found and removed from CT {str(firstDied)}")
+                        else:
+                            break
                     if all(
                         len(player_list or []) <= max_players and len(player_list or []) >= min_players
                         for player_list in player_lists
                     ) and any(player_list is not None for player_list in player_lists):
                         print(f"Round {game_round['roundNum']}: Has accepted player counts")
                         cleaned_rounds.append(game_round)
-
+                    else:
+                        print(f"Round {game_round['roundNum']}: Has rejected player counts T: {len(player_lists[0])} CT: {len(player_lists[1])}")
                 self.json["gameRounds"] = cleaned_rounds
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
