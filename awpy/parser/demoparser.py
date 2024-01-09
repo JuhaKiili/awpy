@@ -1202,8 +1202,8 @@ class DemoParser:
             if flash["playerSteamID"] == switched_steamID:
                 flash["playerSide"] = "T" if flash["playerSide"] == "CT" else "CT"
 
-        player_switched = False  # Flag to indicate whether the player has been switched
         for frame in game_round.get("frames", []):
+            player_switched = False  # Flag to indicate whether the player has been switched
             for side in ("t", "ct"):
                 if player_switched:
                     break  # Break outer loop if player has already been switched
