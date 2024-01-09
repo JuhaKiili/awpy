@@ -48,7 +48,6 @@ from awpy.utils import check_go_version
 if TYPE_CHECKING:
     from pandas.core.arrays.base import ExtensionArray
 
-
 class DemoParser:
     """DemoParser can parse, load and clean data from a CSGO demofile.
 
@@ -907,6 +906,8 @@ class DemoParser:
                 self.remove_end_round()
             if remove_bad_scoring:
                 self.remove_bad_scoring()
+
+            # self.remove_all_but_first()
             self.renumber_rounds()
             self.renumber_frames()
             # self.rescore_rounds() -- Need to edit to take into account half switches
@@ -1161,6 +1162,80 @@ class DemoParser:
                         if player["steamID"] == removed_steamID:
                             frame[side]["players"].remove(player)
 
+    def switch_player_side(self, game_round, switched_steamID):
+        player_switched = False  # Flag to indicate whether the player has been switched
+        for side in ("tSide", "ctSide"):
+            if player_switched:
+                break  # Break outer loop if player has already been switched
+            for player in game_round[side]["players"][:]:  # Iterate over a copy of the list
+                if player["steamID"] == switched_steamID:
+                    # Append to the other team
+                    game_round["tSide" if side == "ctSide" else "ctSide"]["players"].append(player)
+                    # Remove from the current team
+                    game_round[side]["players"].remove(player)
+                    player_switched = True  # Set the flag to indicate the player has been switched
+                    break  # Break inner loop
+        
+        for kill in game_round.get("kills", []):
+            if kill["attackerSteamID"] == switched_steamID:
+                kill["attackerSide"] = "T" if kill["attackerSide"] == "CT" else "CT"
+            if kill["victimSteamID"] == switched_steamID:
+                kill["victimSide"] = "T" if kill["victimSide"] == "CT" else "CT"
+        
+        for damage in game_round.get("damages", []):
+            if damage["attackerSteamID"] == switched_steamID:
+                damage["attackerSide"] = "T" if damage["attackerSide"] == "CT" else "CT"
+            if damage["victimSteamID"] == switched_steamID:
+                damage["victimSide"] = "T" if damage["victimSide"] == "CT" else "CT"
+
+        for grenade in game_round.get("grenades", []):
+            if grenade["throwerSteamID"] == switched_steamID:
+                grenade["throwerSide"] = "T" if grenade["throwerSide"] == "CT" else "CT"
+
+        for weaponFire in game_round.get("weaponFires", []):
+            if weaponFire["playerSteamID"] == switched_steamID:
+                weaponFire["playerSide"] = "T" if weaponFire["playerSide"] == "CT" else "CT"
+
+        for flash in game_round.get("flashes", []):
+            if flash["attackerSteamID"] == switched_steamID:
+                flash["attackerSide"] = "T" if flash["attackerSide"] == "CT" else "CT"
+            if flash["playerSteamID"] == switched_steamID:
+                flash["playerSide"] = "T" if flash["playerSide"] == "CT" else "CT"
+
+        player_switched = False  # Flag to indicate whether the player has been switched
+        for frame in game_round.get("frames", []):
+            for side in ("t", "ct"):
+                if player_switched:
+                    break  # Break outer loop if player has already been switched
+                for player in frame[side]["players"][:]:  # Iterate over a copy of the list
+                    if player["steamID"] == switched_steamID:
+                        # Append to the other team
+                        player["side"] = "T" if side == "ct" else "CT"
+                        frame["t" if side == "ct" else "ct"]["players"].append(player)
+                        # Remove from the current team
+                        frame[side]["players"].remove(player)
+                        player_switched = True  # Set the flag to indicate the player has been switched
+                        break  # Break inner loop
+
+    def get_player_side(self, player, mapName):
+        if mapName in ("de_ancient", "de_anubis", "de_mirage", "de_inferno", "de_nuke", "de_overpass", "de_vertigo"):
+            if mapName == "de_ancient":
+                return "T" if player["y"] < 0 else "CT"
+            if mapName == "de_anubis":
+                return "T" if player["y"] < 0 else "CT"
+            if mapName == "de_inferno":
+                return "T" if player["x"] < 0 else "CT"
+            if mapName == "de_mirage":
+                return "T" if player["x"] > 0 else "CT"
+            if mapName == "de_nuke":
+                return "T" if player["x"] < 0 else "CT"
+            if mapName == "de_overpass":
+                return "T" if player["y"] < 0 else "CT"
+            if mapName == "de_vertigo":
+                return "T" if player["y"] < 0 else "CT"
+        else:
+            return player["side"]
+
     def remove_excess_players(self) -> None:
         """Removes rounds where there are more than 5 players on a side.
 
@@ -1187,6 +1262,20 @@ class DemoParser:
                         game_frame["t"]["players"],
                         game_frame["ct"]["players"],
                     )
+
+                    total_players = len(player_lists[0] or []) + len(player_lists[1] or [])
+                    print(f"Round {game_round['roundNum']}: Total players: {total_players}")
+                    if total_players == 10 and (len(player_lists[0]) > 5 or len(player_lists[1]) > 5):
+                        print("Forcing teams based on player position")
+                        switchedPlayers = set()
+                        for side in ("t", "ct"):
+                            for playerFrame in game_frame[side]["players"]:
+                                if self.get_player_side(playerFrame, self.json["mapName"]) != playerFrame["side"]:
+                                    switchedPlayers.add(playerFrame["steamID"])
+                    
+                        for playerToSwitch in switchedPlayers:
+                            print(f"Round {game_round['roundNum']}: Switching player {str(playerToSwitch)}")
+                            self.switch_player_side(game_round, playerToSwitch)
 
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
@@ -1357,6 +1446,14 @@ class DemoParser:
                 )
             ]
             self.json["gameRounds"] = cleaned_rounds
+        else:
+            msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
+            self.logger.error(msg)
+            raise AttributeError(msg)
+        
+    def remove_all_but_first(self) -> None:
+        if self.json:
+            self.json["gameRounds"] = self.json["gameRounds"][:1]
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
             self.logger.error(msg)
