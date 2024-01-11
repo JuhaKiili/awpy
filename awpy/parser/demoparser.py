@@ -1207,15 +1207,16 @@ class DemoParser:
             for side in ("t", "ct"):
                 if player_switched:
                     break  # Break outer loop if player has already been switched
-                for player in frame[side]["players"][:]:  # Iterate over a copy of the list
-                    if player["steamID"] == switched_steamID:
-                        # Append to the other team
-                        player["side"] = "T" if side == "ct" else "CT"
-                        frame["t" if side == "ct" else "ct"]["players"].append(player)
-                        # Remove from the current team
-                        frame[side]["players"].remove(player)
-                        player_switched = True  # Set the flag to indicate the player has been switched
-                        break  # Break inner loop
+                if side in frame and frame[side] is not None and "players" in frame[side] and frame[side]["players"] is not None:
+                    for player in frame[side]["players"][:]:  # Iterate over a copy of the list
+                        if player["steamID"] == switched_steamID:
+                            # Append to the other team
+                            player["side"] = "T" if side == "ct" else "CT"
+                            frame["t" if side == "ct" else "ct"]["players"].append(player)
+                            # Remove from the current team
+                            frame[side]["players"].remove(player)
+                            player_switched = True  # Set the flag to indicate the player has been switched
+                            break  # Break inner loop
 
     def get_player_side(self, player, mapName):
         if mapName in ("de_ancient", "de_anubis", "de_mirage", "de_inferno", "de_nuke", "de_overpass", "de_vertigo"):
@@ -1264,18 +1265,20 @@ class DemoParser:
                     )
 
                     total_players = len(player_lists[0] or []) + len(player_lists[1] or [])
+                    print("---")
                     print(f"Round {game_round['roundNum']}: Total players: {total_players}")
-                    if total_players == 10 and (len(player_lists[0]) > 5 or len(player_lists[1]) > 5):
-                        print("Forcing teams based on player position")
-                        switchedPlayers = set()
-                        for side in ("t", "ct"):
-                            for playerFrame in game_frame[side]["players"]:
-                                if self.get_player_side(playerFrame, self.json["mapName"]) != playerFrame["side"]:
-                                    switchedPlayers.add(playerFrame["steamID"])
-                    
-                        for playerToSwitch in switchedPlayers:
-                            print(f"Round {game_round['roundNum']}: Switching player {str(playerToSwitch)}")
-                            self.switch_player_side(game_round, playerToSwitch)
+
+                    # if total_players == 10 and (len(player_lists[0]) > 5 or len(player_lists[1]) > 5):
+                    print("Forcing teams based on player position")
+                    switchedPlayers = set()
+                    for side in ("t", "ct"):
+                        for playerFrame in game_frame[side]["players"]:
+                            if self.get_player_side(playerFrame, self.json["mapName"]) != playerFrame["side"]:
+                                switchedPlayers.add(playerFrame["steamID"])
+                
+                    for playerToSwitch in switchedPlayers:
+                        print(f"Round {game_round['roundNum']}: Switching player {str(playerToSwitch)}")
+                        self.switch_player_side(game_round, playerToSwitch)
 
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
