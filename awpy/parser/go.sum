@@ -1,5 +1,5 @@
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.0-cs2lens-disconnect-fix h1:EkCa6LrJYK9rfisY8B8La3y9kLio1jskARbW01eg1as=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.0-cs2lens-disconnect-fix/go.mod h1:HWpaSKbw4Fi1TdELehV9w5K5h3O8Ytkz4MYEAcvKu9c=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.0-cs2lens-spottedby-fix h1:H8zEa6kbNCwY1p22f8HQv73OoTvlDZinu4nLXUzhDj0=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.0-cs2lens-spottedby-fix/go.mod h1:HWpaSKbw4Fi1TdELehV9w5K5h3O8Ytkz4MYEAcvKu9c=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
