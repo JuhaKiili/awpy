@@ -1258,7 +1258,20 @@ class DemoParser:
                 for game_round in self.json["gameRounds"] or []:
                     if not game_round["frames"]:
                         continue
+
+                    # Fix for the case when zero players on other side
+                    for side in ("tSide", "ctSide"):
+                        if side not in game_round:
+                            game_round[side] = {}
+                        if "players" not in game_round[side] or game_round[side]["players"] is None:
+                            game_round[side]["players"] = []
+                    for frame in game_round["frames"]:
+                        for side in ("t", "ct"):
+                            if "players" not in frame[side] or frame[side]["players"] is None:
+                                frame[side]["players"] = []
+
                     game_frame = game_round["frames"][0]
+
                     player_lists = (
                         game_frame["t"]["players"],
                         game_frame["ct"]["players"],
