@@ -1147,6 +1147,19 @@ class DemoParser:
                         return firstDied
         return firstDied
     
+    def remove_coaches_in_origin(self, game_round):
+        first_frame = game_round.get("frames", [])[0]
+        toBeRemoved = []
+        if first_frame is not None:
+            for side in ("t", "ct"):
+                for player in first_frame[side]["players"]:
+                    if player["x"] == 0 and player["y"] == 0 and player["z"] == 0:
+                        toBeRemoved.append(player)
+
+        for player in toBeRemoved:
+            print(f"Removing coach {player['name']} ({player['steamID']}) from position (0,0,0)")
+            self.remove_player_from_round(game_round, player["steamID"])
+    
     def remove_player_from_round(self, game_round, removed_steamID):
         # Remove player from game_round["t"] and game_round["ct"]
         for side in ("tSide", "ctSide"):
@@ -1281,7 +1294,10 @@ class DemoParser:
                     print("---")
                     print(f"Round {game_round['roundNum']}: Total players: {total_players}")
 
-                    # if total_players == 10 and (len(player_lists[0]) > 5 or len(player_lists[1]) > 5):
+                    if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
+                        print(f"Looking for coaches in (0,0,0) position")
+                        self.remove_coaches_in_origin(game_round)
+                        
                     print("Forcing teams based on player position")
                     switchedPlayers = set()
                     for side in ("t", "ct"):
@@ -1297,13 +1313,24 @@ class DemoParser:
                     # CSGOLENS: Remove if any side has less than 3 players
                     # Remove if both sides are None
                     max_loops = 10
+
+                    loop = 0
+                    while len(player_lists[0]) > 5 and loop < max_loops:
+                        loop += 1
+                        origin_ = self.findFirstDeadPlayer(game_round, "t")
+                        if firstDied:
+                            self.remove_player_from_round(game_round, firstDied)
+                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from T {str(firstDied)}")
+                        else:
+                            break
+
                     loop = 0
                     while len(player_lists[0]) > 5 and loop < max_loops:
                         loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "t")
                         if firstDied:
                             self.remove_player_from_round(game_round, firstDied)
-                            print(f"Round {game_round['roundNum']}: Extra player found and removed from T {str(firstDied)}")
+                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from T {str(firstDied)}")
                         else:
                             break
                 
@@ -1313,9 +1340,10 @@ class DemoParser:
                         firstDied = self.findFirstDeadPlayer(game_round, "ct")
                         if firstDied:
                             self.remove_player_from_round(game_round, firstDied)
-                            print(f"Round {game_round['roundNum']}: Extra player found and removed from CT {str(firstDied)}")
+                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from CT {str(firstDied)}")
                         else:
                             break
+                    
                     if all(
                         len(player_list or []) <= max_players and len(player_list or []) >= min_players
                         for player_list in player_lists
