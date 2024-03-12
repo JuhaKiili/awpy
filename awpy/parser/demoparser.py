@@ -1317,7 +1317,7 @@ class DemoParser:
                     loop = 0
                     while len(player_lists[0]) > 5 and loop < max_loops:
                         loop += 1
-                        origin_ = self.findFirstDeadPlayer(game_round, "t")
+                        firstDied = self.findFirstDeadPlayer(game_round, "t")
                         if firstDied:
                             self.remove_player_from_round(game_round, firstDied)
                             print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from T {str(firstDied)}")
