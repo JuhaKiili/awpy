@@ -775,7 +775,9 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 				currentWeapon.WeaponName = w.String()
 				currentWeapon.WeaponClass = convertWeaponClass(w.Class())
 				currentWeapon.AmmoInMagazine = int64(w.AmmoInMagazine())
-				currentWeapon.AmmoInReserve = int64(w.AmmoReserve())
+
+				// Doesn't work with demoinfocs-golang 4.1.0
+				//currentWeapon.AmmoInReserve = int64(w.AmmoReserve())
 
 				// currentPlayer.Inventory = append(currentPlayer.Inventory, w.String())
 				currentPlayer.Inventory = append(currentPlayer.Inventory, currentWeapon)
@@ -785,7 +787,10 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 						currentPlayer.FireGrenade++
 					}
 					if w.Type == common.EqFlash {
-						currentPlayer.FlashGrenade += int64(w.AmmoInMagazine()) + int64(w.AmmoReserve())
+						currentPlayer.FlashGrenade += int64(w.AmmoInMagazine())
+						
+						// Doesn't work with demoinfocs-golang 4.1.0
+						//currentPlayer.FlashGrenade += int64(w.AmmoInMagazine()) + int64(w.AmmoReserve())
 					}
 					if w.Type == common.EqSmoke {
 						currentPlayer.SmokeGrenade++
@@ -1638,7 +1643,10 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			currentWeaponFire.Weapon = e.Weapon.String()
 			currentWeaponFire.WeaponClass = convertWeaponClass(e.Weapon.Class())
 			currentWeaponFire.AmmoInMagazine = int64(e.Weapon.AmmoInMagazine())
-			currentWeaponFire.AmmoInReserve = int64(e.Weapon.AmmoReserve())
+			
+			// Doesn't work with demoinfocs-golang 4.1.0
+			//currentWeaponFire.AmmoInReserve = int64(e.Weapon.AmmoReserve())
+
 			currentWeaponFire.PlayerViewX = float64(e.Shooter.ViewDirectionX())
 			currentWeaponFire.PlayerViewY = float64(e.Shooter.ViewDirectionY())
 			currentWeaponFire.PlayerStrafe = e.Shooter.IsWalking()
@@ -2108,10 +2116,12 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentKill.AttackerX = &attackerPos.X
 			currentKill.AttackerY = &attackerPos.Y
 			currentKill.AttackerZ = &attackerPos.Z
-			attackerViewX := float64(e.Killer.ViewDirectionX())
-			attackerViewY := float64(e.Killer.ViewDirectionY())
-			currentKill.AttackerViewX = &attackerViewX
-			currentKill.AttackerViewY = &attackerViewY
+
+			// Doesn't work with demoinfocs-golang 4.1.0 
+			// attackerViewX := float64(e.Killer.ViewDirectionX())
+			// attackerViewY := float64(e.Killer.ViewDirectionY())
+			// currentKill.AttackerViewX = &attackerViewX
+			// currentKill.AttackerViewY = &attackerViewY
 		}
 
 		// Victim
@@ -2145,10 +2155,12 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentKill.VictimX = &victimPos.X
 			currentKill.VictimY = &victimPos.Y
 			currentKill.VictimZ = &victimPos.Z
-			victimViewX := float64(e.Victim.ViewDirectionX())
-			victimViewY := float64(e.Victim.ViewDirectionY())
-			currentKill.VictimViewX = &victimViewX
-			currentKill.VictimViewY = &victimViewY
+
+			// Doesn't work with demoinfocs-golang 4.1.0 
+			// victimViewX := float64(e.Victim.ViewDirectionX())
+			// victimViewY := float64(e.Victim.ViewDirectionY())
+			// currentKill.VictimViewX = &victimViewX
+			// currentKill.VictimViewY = &victimViewY
 
 			if !currentKill.IsSuicide && e.Killer != nil && e.Victim != nil {
 				X := math.Pow((*currentKill.AttackerX - *currentKill.VictimX), 2)
@@ -2309,12 +2321,14 @@ func registerDamageHandler(demoParser *dem.Parser, currentGame *Game, currentRou
 			currentDamage.AttackerX = &attackerPos.X
 			currentDamage.AttackerY = &attackerPos.Y
 			currentDamage.AttackerZ = &attackerPos.Z
-			attackerViewX := float64(e.Attacker.ViewDirectionX())
-			attackerViewY := float64(e.Attacker.ViewDirectionY())
-			currentDamage.AttackerViewX = &attackerViewX
-			currentDamage.AttackerViewY = &attackerViewY
-			attackerStrafe := e.Attacker.IsWalking()
-			currentDamage.AttackerStrafe = &attackerStrafe
+
+			// Doesn't work with demoinfocs-golang 4.1.0 
+			// attackerViewX := float64(e.Attacker.ViewDirectionX())
+			// attackerViewY := float64(e.Attacker.ViewDirectionY())
+			// currentDamage.AttackerViewX = &attackerViewX
+			// currentDamage.AttackerViewY = &attackerViewY
+			// attackerStrafe := e.Attacker.IsWalking()
+			// currentDamage.AttackerStrafe = &attackerStrafe
 
 			if e.Weapon != nil {
 				zoomLevel := int64(e.Weapon.ZoomLevel())
@@ -2353,10 +2367,12 @@ func registerDamageHandler(demoParser *dem.Parser, currentGame *Game, currentRou
 			currentDamage.VictimX = &victimPos.X
 			currentDamage.VictimY = &victimPos.Y
 			currentDamage.VictimZ = &victimPos.Z
-			victimViewX := float64(e.Player.ViewDirectionX())
-			victimViewY := float64(e.Player.ViewDirectionY())
-			currentDamage.VictimViewX = &victimViewX
-			currentDamage.VictimViewY = &victimViewY
+			
+			// Doesn't work with demoinfocs-golang 4.1.0 
+			// victimViewX := float64(e.Player.ViewDirectionX())
+			// victimViewY := float64(e.Player.ViewDirectionY())
+			// currentDamage.VictimViewX = &victimViewX
+			// currentDamage.VictimViewY = &victimViewY
 
 			// Parse team damage
 			currentDamage.IsTeamDmg = false

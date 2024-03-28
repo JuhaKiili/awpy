@@ -21,6 +21,6 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.1-cs2lens-crash-fix-20240206
+replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v1
 
-//replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang
+// replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang
