@@ -4,6 +4,8 @@ github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.1-cs2lens-crash-fix-20240206 h1:r
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.0.1-cs2lens-crash-fix-20240206/go.mod h1:08VGvqZqm8DWVwE2VZKsy/EPLrl+KOyy4dC2KBqDGnU=
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v1 h1:IhJHXUT/z1DqamutH5OZ9j2bx6usMX38vqK3yhzZ+4M=
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v1/go.mod h1:kDkzriHU1eK8bjnL0QsSgPjkbNLlCPE+dfaYaneEJ5k=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v2 h1:EbLvQAekzqEbAlbbeBAc35s/mhBHD667Ryqzh7EMq5Y=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v2/go.mod h1:kDkzriHU1eK8bjnL0QsSgPjkbNLlCPE+dfaYaneEJ5k=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
