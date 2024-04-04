@@ -6,6 +6,8 @@ github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v1 h1:IhJHXUT/z1Dqa
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v1/go.mod h1:kDkzriHU1eK8bjnL0QsSgPjkbNLlCPE+dfaYaneEJ5k=
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v2 h1:EbLvQAekzqEbAlbbeBAc35s/mhBHD667Ryqzh7EMq5Y=
 github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v2/go.mod h1:kDkzriHU1eK8bjnL0QsSgPjkbNLlCPE+dfaYaneEJ5k=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v3 h1:BMsMrZM6hKf3y+bc8sLe9vxBEH8SqG5yF/L5wJbb4Fs=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v3/go.mod h1:kDkzriHU1eK8bjnL0QsSgPjkbNLlCPE+dfaYaneEJ5k=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

@@ -21,6 +21,6 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v2
+replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.0-cs2lens-pov-v3
 
 // replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang
