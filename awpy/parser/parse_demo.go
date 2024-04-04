@@ -2014,15 +2014,18 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			// Parse projectiles objects
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
+
 			for _, ele := range allGrenades {
-				if ele != nil {
+				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
+				if len(ele.Trajectory2) > 0 {
 					currentProjectile := GrenadeInfo{}
 					currentProjectile.ProjectileType = ele.WeaponInstance.String()
-					objPos := ele.Trajectory[len(ele.Trajectory)-1]
+					// Safely access the last element since we now know the slice is not empty
+					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
 	
-					currentProjectile.X = objPos.X
-					currentProjectile.Y = objPos.Y
-					currentProjectile.Z = objPos.Z
+					currentProjectile.X = objPos.Position.X
+					currentProjectile.Y = objPos.Position.Y
+					currentProjectile.Z = objPos.Position.Z
 					currentProjectile.UniqueID = ele.UniqueID()
 					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
