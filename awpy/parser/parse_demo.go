@@ -670,6 +670,89 @@ func playerInList(p *common.Player, players []PlayerInfo) bool {
 }
 
 func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
+
+	// CS2Lens: Inventory fix for POV Demos
+	for id, eq := range p.Inventory {
+		if eq.Type == common.EqUnknown {
+			if gs == nil {
+				continue
+			}
+			entity, exists := gs.Entities()[id]
+			if !exists {
+				continue
+			}
+			serverClass := entity.ServerClass()
+			if serverClass == nil {
+				continue
+			}
+			className := serverClass.Name()
+	
+			// Define the mapping of class names to equipment types
+			eqMap := map[string]common.EquipmentType{
+				// Grenades
+				"CFlashbang":         common.EqFlash,
+				"CIncendiaryGrenade": common.EqIncendiary,
+				"CSmokeGrenade":      common.EqSmoke,
+				"CHEGrenade":         common.EqHE,
+				"CDecoyGrenade":      common.EqDecoy,
+				"CMolotovGrenade":    common.EqMolotov,
+			
+				// Pistols
+				"CWeaponElite":       common.EqDualBerettas,
+				"CWeaponTec9":        common.EqTec9,
+				"CWeaponHKP2000":     common.EqP2000,
+				"CWeaponGlock":       common.EqGlock,
+				"CWeaponP250":        common.EqP250,
+				"CWeaponDeagle":      common.EqDeagle,
+				"CDEagle":			  common.EqDeagle,
+				"CWeaponUSP":         common.EqUSP,
+				"CWeaponFiveSeven":   common.EqFiveSeven,
+			
+				// SMGs
+				"CWeaponMAC10":       common.EqMac10,
+				"CWeaponMP5":     	  common.EqMP5,
+				"CWeaponMP5Navy":     common.EqMP5,
+				"CWeaponMP7":         common.EqMP7,
+				"CWeaponMP9":         common.EqMP9,
+				"CWeaponBizon":       common.EqBizon,
+				"CWeaponUMP45":       common.EqUMP,
+				"CWeaponP90":         common.EqP90,
+			
+				// Rifles
+				"CWeaponFamas":       common.EqFamas,
+				"CWeaponGalilAR":     common.EqGalil,
+				"CWeaponM4A1":        common.EqM4A1,
+				"CWeaponAK47":        common.EqAK47,
+				"CWeaponSG552":       common.EqSG553,
+				"CWeaponSG553":       common.EqSG553,
+				"CWeaponSG556":       common.EqSG556,
+				"CWeaponAUG":         common.EqAUG,
+				"CWeaponSCAR20":      common.EqScar20,
+				"CWeaponG3SG1":       common.EqG3SG1,
+				"CWeaponSSG08":       common.EqSSG08,
+			
+				// Heavy
+				"CWeaponNova":        common.EqNova,
+				"CWeaponXM1014":      common.EqXM1014,
+				"CWeaponSawedoff":    common.EqSawedOff,
+				"CWeaponM249":        common.EqM249,
+				"CWeaponNegev":       common.EqNegev,
+				"CWeaponMag7":        common.EqMag7,
+			
+				// Other
+				"CWeaponTaser":       common.EqZeus,
+				"CC4":                common.EqBomb,
+				"CKnife":             common.EqKnife,
+				"CKnifeGG":           common.EqKnife,
+			}
+	
+			// Update eq.Type if className is in the map
+			if newType, ok := eqMap[className]; ok {
+				eq.Type = newType
+			}
+		}
+	}
+
 	currentPlayer := PlayerInfo{}
 	currentPlayer.PlayerSteamID = int64(p.SteamID64)
 	currentPlayer.PlayerName = p.Name
