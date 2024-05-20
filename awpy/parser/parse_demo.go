@@ -2099,16 +2099,46 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentFrame.Projectiles = []GrenadeInfo{}
 
 			for _, ele := range allGrenades {
-				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
-				if len(ele.Trajectory2) > 0 {
+				if len(ele.Trajectory2) > 0 && ele.WeaponInstance != nil && ele.WeaponInstance.String() != "UNKNOWN" {
 					currentProjectile := GrenadeInfo{}
 					currentProjectile.ProjectileType = ele.WeaponInstance.String()
-					// Safely access the last element since we now know the slice is not empty
 					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
-	
 					currentProjectile.X = objPos.Position.X
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+				} else if (ele.Entity.Property("CBodyComponent")) != nil {
+					currentProjectile := GrenadeInfo{}
+					serverClass := ele.Entity.ServerClass()
+					if serverClass == nil {
+						continue
+					}
+					className := serverClass.Name()
+					eqMap := map[string]common.EquipmentType{
+						"CFlashbangProjectile":         common.EqFlash,
+						"CSmokeGrenadeProjectile":      common.EqSmoke,
+						"CHEGrenadeProjectile":         common.EqHE,
+						"CDecoyProjectile":      common.EqDecoy,
+						"CMolotovProjectile":    common.EqMolotov,
+					}
+					if equipmentType, ok := eqMap[className]; ok {
+						currentProjectile.ProjectileType = equipmentType.String()
+						if currentProjectile.ProjectileType == "Molotov" && ele.Entity.Property("CBodyComponent.m_hModel").Value().String() == "12910967535364078964" {
+							currentProjectile.ProjectileType = "Incendiary Grenade"
+						}
+					} else {
+						currentProjectile.ProjectileType = "UNKNOWN"
+					}
+					propertyValueX, okX := ele.Entity.PropertyValue("CBodyComponent.m_vecX")
+					propertyValueY, okY := ele.Entity.PropertyValue("CBodyComponent.m_vecY")
+					propertyValueZ, okZ := ele.Entity.PropertyValue("CBodyComponent.m_vecZ")
+					if !okX || !okY || !okZ || propertyValueX.String() == "<nil>" || propertyValueY.String() == "<nil>" || propertyValueZ.String() == "<nil>" {
+						continue
+					}
+					currentProjectile.X = float64(propertyValueX.Float())
+					currentProjectile.Y = float64(propertyValueY.Float())
+					currentProjectile.Z = float64(propertyValueZ.Float())
 					currentProjectile.UniqueID = ele.UniqueID()
 					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
@@ -2584,17 +2614,48 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 			// Parse projectiles objects
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
+
 			for _, ele := range allGrenades {
-				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
-				if len(ele.Trajectory2) > 0 {
+				if len(ele.Trajectory2) > 0 && ele.WeaponInstance != nil && ele.WeaponInstance.String() != "UNKNOWN" {
 					currentProjectile := GrenadeInfo{}
 					currentProjectile.ProjectileType = ele.WeaponInstance.String()
-					// Safely access the last element since we now know the slice is not empty
 					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
-	
 					currentProjectile.X = objPos.Position.X
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+				} else if (ele.Entity.Property("CBodyComponent")) != nil {
+					currentProjectile := GrenadeInfo{}
+					serverClass := ele.Entity.ServerClass()
+					if serverClass == nil {
+						continue
+					}
+					className := serverClass.Name()
+					eqMap := map[string]common.EquipmentType{
+						"CFlashbangProjectile":         common.EqFlash,
+						"CSmokeGrenadeProjectile":      common.EqSmoke,
+						"CHEGrenadeProjectile":         common.EqHE,
+						"CDecoyProjectile":      common.EqDecoy,
+						"CMolotovProjectile":    common.EqMolotov,
+					}
+					if equipmentType, ok := eqMap[className]; ok {
+						currentProjectile.ProjectileType = equipmentType.String()
+						if currentProjectile.ProjectileType == "Molotov" && ele.Entity.Property("CBodyComponent.m_hModel").Value().String() == "12910967535364078964" {
+							currentProjectile.ProjectileType = "Incendiary Grenade"
+						}
+					} else {
+						currentProjectile.ProjectileType = "UNKNOWN"
+					}
+					propertyValueX, okX := ele.Entity.PropertyValue("CBodyComponent.m_vecX")
+					propertyValueY, okY := ele.Entity.PropertyValue("CBodyComponent.m_vecY")
+					propertyValueZ, okZ := ele.Entity.PropertyValue("CBodyComponent.m_vecZ")
+					if !okX || !okY || !okZ || propertyValueX.String() == "<nil>" || propertyValueY.String() == "<nil>" || propertyValueZ.String() == "<nil>" {
+						continue
+					}
+					currentProjectile.X = float64(propertyValueX.Float())
+					currentProjectile.Y = float64(propertyValueY.Float())
+					currentProjectile.Z = float64(propertyValueZ.Float())
 					currentProjectile.UniqueID = ele.UniqueID()
 					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
