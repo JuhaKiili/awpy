@@ -1018,55 +1018,6 @@ func initializeRound(currentRound *GameRound) {
 	currentRound.WeaponFires = []WeaponFireAction{}
 }
 
-func GetGrenadeInfo(projectile *common.GrenadeProjectile) *GrenadeInfo {
-	// Normal codepath
-	if len(projectile.Trajectory2) > 0 && projectile.WeaponInstance != nil && projectile.WeaponInstance.String() != "UNKNOWN" {
-		currentProjectile := GrenadeInfo{}
-		currentProjectile.ProjectileType = projectile.WeaponInstance.String()
-		objPos := projectile.Trajectory2[len(projectile.Trajectory2)-1]
-		currentProjectile.X = objPos.Position.X
-		currentProjectile.Y = objPos.Position.Y
-		currentProjectile.Z = objPos.Position.Z
-		currentProjectile.UniqueID = projectile.UniqueID()
-		return &currentProjectile
-	// cs2lens: Fallback for some broken POV demos
-	} else if projectile.Entity.Property("CBodyComponent") != nil {
-		currentProjectile := GrenadeInfo{}
-		serverClass := projectile.Entity.ServerClass()
-		if serverClass == nil {
-			return nil
-		}
-		className := serverClass.Name()
-		eqMap := map[string]common.EquipmentType{
-			"CFlashbangProjectile":         common.EqFlash,
-			"CSmokeGrenadeProjectile":      common.EqSmoke,
-			"CHEGrenadeProjectile":         common.EqHE,
-			"CDecoyProjectile":      common.EqDecoy,
-			"CMolotovProjectile":    common.EqMolotov,
-		}
-		if equipmentType, ok := eqMap[className]; ok {
-			currentProjectile.ProjectileType = equipmentType.String()
-			if currentProjectile.ProjectileType == "Molotov" && projectile.Entity.Property("CBodyComponent.m_hModel").Value().String() == "12910967535364078964" {
-				currentProjectile.ProjectileType = "Incendiary Grenade"
-			}
-		} else {
-			currentProjectile.ProjectileType = "UNKNOWN"
-		}
-		propertyValueX, okX := projectile.Entity.PropertyValue("CBodyComponent.m_vecX")
-		propertyValueY, okY := projectile.Entity.PropertyValue("CBodyComponent.m_vecY")
-		propertyValueZ, okZ := projectile.Entity.PropertyValue("CBodyComponent.m_vecZ")
-		if !okX || !okY || !okZ || propertyValueX.String() == "<nil>" || propertyValueY.String() == "<nil>" || propertyValueZ.String() == "<nil>" {
-			return nil
-		}
-		currentProjectile.X = float64(propertyValueX.Float())
-		currentProjectile.Y = float64(propertyValueY.Float())
-		currentProjectile.Z = float64(propertyValueZ.Float())
-		currentProjectile.UniqueID = projectile.UniqueID()
-		return &currentProjectile
-	}
-	return nil
-}
-
 func registerChatHandlers(demoParser *dem.Parser, currentGame *Game) {
 	// Register handler for chat messages (ChatMessage)
 	(*demoParser).RegisterEventHandler(func(e events.ChatMessage) {
@@ -1775,14 +1726,7 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			currentWeaponFire.Weapon = e.Weapon.String()
 			currentWeaponFire.WeaponClass = convertWeaponClass(e.Weapon.Class())
 			currentWeaponFire.AmmoInMagazine = int64(e.Weapon.AmmoInMagazine())
-
-			// cs2lens: Fallback for some broken POV demos
-			if currentWeaponFire.Weapon == "UNKNOWN" && e.Shooter.ActiveWeapon() != nil {
-				currentWeaponFire.Weapon = e.Shooter.ActiveWeapon().String()
-				currentWeaponFire.WeaponClass = convertWeaponClass(e.Shooter.ActiveWeapon().Class())
-				currentWeaponFire.AmmoInMagazine = int64(e.Shooter.ActiveWeapon().AmmoInMagazine())
-			}
-
+			
 			// Doesn't work with demoinfocs-golang 4.1.0
 			//currentWeaponFire.AmmoInReserve = int64(e.Weapon.AmmoReserve())
 
@@ -1790,7 +1734,7 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			currentWeaponFire.PlayerViewY = float64(e.Shooter.ViewDirectionY())
 			currentWeaponFire.PlayerStrafe = e.Shooter.IsWalking()
 			currentWeaponFire.ZoomLevel = int64(e.Weapon.ZoomLevel())
-			
+
 			// add
 			currentRound.WeaponFires = append(currentRound.WeaponFires, currentWeaponFire)
 		}
@@ -2154,10 +2098,49 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
 
-			for _, projectile := range allGrenades {
-				grenadeInfo := GetGrenadeInfo(projectile)
-				if grenadeInfo != nil {
-					currentFrame.Projectiles = append(currentFrame.Projectiles, *grenadeInfo)
+			for _, ele := range allGrenades {
+				if len(ele.Trajectory2) > 0 && ele.WeaponInstance != nil && ele.WeaponInstance.String() != "UNKNOWN" {
+					currentProjectile := GrenadeInfo{}
+					currentProjectile.ProjectileType = ele.WeaponInstance.String()
+					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
+					currentProjectile.X = objPos.Position.X
+					currentProjectile.Y = objPos.Position.Y
+					currentProjectile.Z = objPos.Position.Z
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+				} else if (ele.Entity.Property("CBodyComponent")) != nil {
+					currentProjectile := GrenadeInfo{}
+					serverClass := ele.Entity.ServerClass()
+					if serverClass == nil {
+						continue
+					}
+					className := serverClass.Name()
+					eqMap := map[string]common.EquipmentType{
+						"CFlashbangProjectile":         common.EqFlash,
+						"CSmokeGrenadeProjectile":      common.EqSmoke,
+						"CHEGrenadeProjectile":         common.EqHE,
+						"CDecoyProjectile":      common.EqDecoy,
+						"CMolotovProjectile":    common.EqMolotov,
+					}
+					if equipmentType, ok := eqMap[className]; ok {
+						currentProjectile.ProjectileType = equipmentType.String()
+						if currentProjectile.ProjectileType == "Molotov" && ele.Entity.Property("CBodyComponent.m_hModel").Value().String() == "12910967535364078964" {
+							currentProjectile.ProjectileType = "Incendiary Grenade"
+						}
+					} else {
+						currentProjectile.ProjectileType = "UNKNOWN"
+					}
+					propertyValueX, okX := ele.Entity.PropertyValue("CBodyComponent.m_vecX")
+					propertyValueY, okY := ele.Entity.PropertyValue("CBodyComponent.m_vecY")
+					propertyValueZ, okZ := ele.Entity.PropertyValue("CBodyComponent.m_vecZ")
+					if !okX || !okY || !okZ || propertyValueX.String() == "<nil>" || propertyValueY.String() == "<nil>" || propertyValueZ.String() == "<nil>" {
+						continue
+					}
+					currentProjectile.X = float64(propertyValueX.Float())
+					currentProjectile.Y = float64(propertyValueY.Float())
+					currentProjectile.Z = float64(propertyValueZ.Float())
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
 			}
 
@@ -2632,10 +2615,49 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
 
-			for _, projectile := range allGrenades {
-				grenadeInfo := GetGrenadeInfo(projectile)
-				if grenadeInfo != nil {
-					currentFrame.Projectiles = append(currentFrame.Projectiles, *grenadeInfo)
+			for _, ele := range allGrenades {
+				if len(ele.Trajectory2) > 0 && ele.WeaponInstance != nil && ele.WeaponInstance.String() != "UNKNOWN" {
+					currentProjectile := GrenadeInfo{}
+					currentProjectile.ProjectileType = ele.WeaponInstance.String()
+					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
+					currentProjectile.X = objPos.Position.X
+					currentProjectile.Y = objPos.Position.Y
+					currentProjectile.Z = objPos.Position.Z
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+				} else if (ele.Entity.Property("CBodyComponent")) != nil {
+					currentProjectile := GrenadeInfo{}
+					serverClass := ele.Entity.ServerClass()
+					if serverClass == nil {
+						continue
+					}
+					className := serverClass.Name()
+					eqMap := map[string]common.EquipmentType{
+						"CFlashbangProjectile":         common.EqFlash,
+						"CSmokeGrenadeProjectile":      common.EqSmoke,
+						"CHEGrenadeProjectile":         common.EqHE,
+						"CDecoyProjectile":      common.EqDecoy,
+						"CMolotovProjectile":    common.EqMolotov,
+					}
+					if equipmentType, ok := eqMap[className]; ok {
+						currentProjectile.ProjectileType = equipmentType.String()
+						if currentProjectile.ProjectileType == "Molotov" && ele.Entity.Property("CBodyComponent.m_hModel").Value().String() == "12910967535364078964" {
+							currentProjectile.ProjectileType = "Incendiary Grenade"
+						}
+					} else {
+						currentProjectile.ProjectileType = "UNKNOWN"
+					}
+					propertyValueX, okX := ele.Entity.PropertyValue("CBodyComponent.m_vecX")
+					propertyValueY, okY := ele.Entity.PropertyValue("CBodyComponent.m_vecY")
+					propertyValueZ, okZ := ele.Entity.PropertyValue("CBodyComponent.m_vecZ")
+					if !okX || !okY || !okZ || propertyValueX.String() == "<nil>" || propertyValueY.String() == "<nil>" || propertyValueZ.String() == "<nil>" {
+						continue
+					}
+					currentProjectile.X = float64(propertyValueX.Float())
+					currentProjectile.Y = float64(propertyValueY.Float())
+					currentProjectile.Z = float64(propertyValueZ.Float())
+					currentProjectile.UniqueID = ele.UniqueID()
+					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
 				}
 			}
 
