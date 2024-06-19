@@ -822,7 +822,10 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 
 	if (p.IsAlive()) && (p.ActiveWeapon() != nil) {
 		activeWeapon = p.ActiveWeapon().String()
-		currentPlayer.ZoomLevel = int64(p.ActiveWeapon().ZoomLevel())
+
+		// cs2lens: Does't work with some POV demos
+		// currentPlayer.ZoomLevel = int64(p.ActiveWeapon().ZoomLevel())
+		currentPlayer.ZoomLevel = 0
 	}
 
 	// Determine spotted players
@@ -1733,7 +1736,9 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			currentWeaponFire.PlayerViewX = float64(e.Shooter.ViewDirectionX())
 			currentWeaponFire.PlayerViewY = float64(e.Shooter.ViewDirectionY())
 			currentWeaponFire.PlayerStrafe = e.Shooter.IsWalking()
-			currentWeaponFire.ZoomLevel = int64(e.Weapon.ZoomLevel())
+
+			// cs2lens: Does't work with some POV demos
+			// currentWeaponFire.ZoomLevel = int64(e.Weapon.ZoomLevel())
 
 			// add
 			currentRound.WeaponFires = append(currentRound.WeaponFires, currentWeaponFire)
@@ -2416,10 +2421,11 @@ func registerDamageHandler(demoParser *dem.Parser, currentGame *Game, currentRou
 			// attackerStrafe := e.Attacker.IsWalking()
 			// currentDamage.AttackerStrafe = &attackerStrafe
 
-			if e.Weapon != nil {
-				zoomLevel := int64(e.Weapon.ZoomLevel())
-				currentDamage.ZoomLevel = &zoomLevel
-			}
+			// cs2lens: Does't work with some POV demos
+			// if e.Weapon != nil {
+			// 	zoomLevel := int64(e.Weapon.ZoomLevel())
+			// 	currentDamage.ZoomLevel = &zoomLevel
+			// }
 		}
 
 		// Victim
