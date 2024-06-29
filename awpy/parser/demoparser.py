@@ -1159,6 +1159,34 @@ class DemoParser:
         for player in toBeRemoved:
             print(f"Removing coach {player['name']} ({player['steamID']}) from position (0,0,0)")
             self.remove_player_from_round(game_round, player["steamID"])
+
+    def remove_coaches_not_moving(self, game_round):
+        frames = game_round.get("frames", [])
+        if not frames:
+            return
+        
+        toBeRemoved = []
+
+        for side in ("t", "ct"):
+            for player in frames[0][side]["players"]:
+                player_id = player["steamID"]
+                position = (player["x"], player["y"], player["z"])
+                moved = False
+
+                for frame in frames[1:]:
+                    for p in frame[side]["players"]:
+                        if p['steamID'] == player_id and (p["x"], p["y"], p["z"]) != position:
+                            moved = True
+                            break
+                    if moved:
+                        break
+
+                if not moved:
+                    toBeRemoved.append(player)
+
+        for player in toBeRemoved:
+            print(f"Removing coach {player['name']} ({player['steamID']}) for not moving.")
+            self.remove_player_from_round(game_round, player["steamID"])
     
     def remove_player_from_round(self, game_round, removed_steamID):
         # Remove player from game_round["t"] and game_round["ct"]
@@ -1297,6 +1325,10 @@ class DemoParser:
                     if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
                         print(f"Looking for coaches in (0,0,0) position")
                         self.remove_coaches_in_origin(game_round)
+
+                    if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
+                        print(f"Looking for coaches not moving")
+                        self.remove_coaches_not_moving(game_round)
                         
                     print("Forcing teams based on player position")
                     switchedPlayers = set()
