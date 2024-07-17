@@ -1529,7 +1529,7 @@ class DemoParser:
         
     def remove_all_but_first(self) -> None:
         if self.json:
-            self.json["gameRounds"] = self.json["gameRounds"][:1]
+            self.json["gameRounds"] = self.json["gameRounds"][:3]
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"
             self.logger.error(msg)

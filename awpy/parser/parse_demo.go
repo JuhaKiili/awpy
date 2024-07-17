@@ -14,6 +14,7 @@ import (
 	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
 	common "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
 	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/sendtables"
 )
 
 const unknown = "Unknown"
@@ -39,6 +40,7 @@ type Game struct {
 	Chat           []Chat          `json:"chatMessages"`
 	Connections    []ConnectAction `json:"playerConnections"`
 	Rounds         []GameRound     `json:"gameRounds"`
+	IsPOVDemo	   bool            `json:"isPOVDemo"`
 }
 
 // ParserOpts holds the parameters passed to the parser.
@@ -123,6 +125,7 @@ type ConnectAction struct {
 type GameRound struct {
 	RoundNum             int64              `json:"roundNum"`
 	IsWarmup             bool               `json:"isWarmup"`
+	IsPOVDemo	   		 bool            	`json:"isPOVDemo"`
 	StartTick            int64              `json:"startTick"`
 	FreezeTimeEndTick    int64              `json:"freezeTimeEndTick"`
 	EndTick              int64              `json:"endTick"`
@@ -189,6 +192,7 @@ type GrenadeAction struct {
 	GrenadeY         float64 `json:"grenadeY"`
 	GrenadeZ         float64 `json:"grenadeZ"`
 	UniqueID         int64   `json:"entityId"`
+	CS2LensEntityID	 int64   `json:"cs2lensEntityID"`
 }
 
 // BombAction events.
@@ -369,6 +373,7 @@ type BombInfo struct {
 // Projectile.
 type GrenadeInfo struct {
 	UniqueID       int64   `json:"uniqueID"`
+	CS2LensEntityID	   int64   `json:"cs2lensEntityID"`
 	ProjectileType string  `json:"projectileType"`
 	X              float64 `json:"x"`
 	Y              float64 `json:"y"`
@@ -674,82 +679,7 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 	// CS2Lens: Inventory fix for POV Demos
 	for id, eq := range p.Inventory {
 		if eq.Type == common.EqUnknown {
-			if gs == nil {
-				continue
-			}
-			entity, exists := gs.Entities()[id]
-			if !exists {
-				continue
-			}
-			serverClass := entity.ServerClass()
-			if serverClass == nil {
-				continue
-			}
-			className := serverClass.Name()
-	
-			// Define the mapping of class names to equipment types
-			eqMap := map[string]common.EquipmentType{
-				// Grenades
-				"CFlashbang":         common.EqFlash,
-				"CIncendiaryGrenade": common.EqIncendiary,
-				"CSmokeGrenade":      common.EqSmoke,
-				"CHEGrenade":         common.EqHE,
-				"CDecoyGrenade":      common.EqDecoy,
-				"CMolotovGrenade":    common.EqMolotov,
-			
-				// Pistols
-				"CWeaponElite":       common.EqDualBerettas,
-				"CWeaponTec9":        common.EqTec9,
-				"CWeaponHKP2000":     common.EqP2000,
-				"CWeaponGlock":       common.EqGlock,
-				"CWeaponP250":        common.EqP250,
-				"CWeaponDeagle":      common.EqDeagle,
-				"CDEagle":			  common.EqDeagle,
-				"CWeaponUSP":         common.EqUSP,
-				"CWeaponFiveSeven":   common.EqFiveSeven,
-			
-				// SMGs
-				"CWeaponMAC10":       common.EqMac10,
-				"CWeaponMP5":     	  common.EqMP5,
-				"CWeaponMP5Navy":     common.EqMP5,
-				"CWeaponMP7":         common.EqMP7,
-				"CWeaponMP9":         common.EqMP9,
-				"CWeaponBizon":       common.EqBizon,
-				"CWeaponUMP45":       common.EqUMP,
-				"CWeaponP90":         common.EqP90,
-			
-				// Rifles
-				"CWeaponFamas":       common.EqFamas,
-				"CWeaponGalilAR":     common.EqGalil,
-				"CWeaponM4A1":        common.EqM4A1,
-				"CWeaponAK47":        common.EqAK47,
-				"CWeaponSG552":       common.EqSG553,
-				"CWeaponSG553":       common.EqSG553,
-				"CWeaponSG556":       common.EqSG556,
-				"CWeaponAUG":         common.EqAUG,
-				"CWeaponSCAR20":      common.EqScar20,
-				"CWeaponG3SG1":       common.EqG3SG1,
-				"CWeaponSSG08":       common.EqSSG08,
-			
-				// Heavy
-				"CWeaponNova":        common.EqNova,
-				"CWeaponXM1014":      common.EqXM1014,
-				"CWeaponSawedoff":    common.EqSawedOff,
-				"CWeaponM249":        common.EqM249,
-				"CWeaponNegev":       common.EqNegev,
-				"CWeaponMag7":        common.EqMag7,
-			
-				// Other
-				"CWeaponTaser":       common.EqZeus,
-				"CC4":                common.EqBomb,
-				"CKnife":             common.EqKnife,
-				"CKnifeGG":           common.EqKnife,
-			}
-	
-			// Update eq.Type if className is in the map
-			if newType, ok := eqMap[className]; ok {
-				eq.Type = newType
-			}
+			eq.Type, _ = getEquipmentType(id, gs)
 		}
 	}
 
@@ -894,6 +824,105 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 	}
 
 	return currentPlayer
+}
+
+func getGrenadeType(entity sendtables.Entity) (string, bool) {
+    if entity != nil && entity.ServerClass() != nil {
+        className := entity.ServerClass().Name()
+        eqMap := map[string]string{
+            "CFlashbangProjectile":       "Flashbang",
+            "CIncendiaryGrenadeProjectile": "Incendiary Grenade",
+            "CSmokeGrenadeProjectile":    "Smoke Grenade",
+            "CHEGrenadeProjectile":       "HE Grenade",
+            "CDecoyGrenadeProjectile":    "Decoy Grenade",
+            "CMolotovProjectile":         "Molotov",
+        }
+        if grenadeType, ok := eqMap[className]; ok {
+            return grenadeType, true
+        }
+    }
+    return "", false
+}
+
+func getEquipmentType(entityId int, gs dem.GameState) (common.EquipmentType, bool) {
+	if gs == nil {
+		return common.EqUnknown, false
+	}
+	entity, exists := gs.Entities()[entityId]
+	if !exists {
+		return common.EqUnknown, false
+	}
+	serverClass := entity.ServerClass()
+	if serverClass == nil {
+		return common.EqUnknown, false
+	}
+	className := serverClass.Name()
+
+	// Define the mapping of class names to equipment types
+	eqMap := map[string]common.EquipmentType{
+		// Grenades
+		"CFlashbang":         common.EqFlash,
+		"CIncendiaryGrenade": common.EqIncendiary,
+		"CSmokeGrenade":      common.EqSmoke,
+		"CHEGrenade":         common.EqHE,
+		"CDecoyGrenade":      common.EqDecoy,
+		"CMolotovGrenade":    common.EqMolotov,
+	
+		// Pistols
+		"CWeaponElite":       common.EqDualBerettas,
+		"CWeaponTec9":        common.EqTec9,
+		"CWeaponHKP2000":     common.EqP2000,
+		"CWeaponGlock":       common.EqGlock,
+		"CWeaponP250":        common.EqP250,
+		"CWeaponDeagle":      common.EqDeagle,
+		"CDEagle":			  common.EqDeagle,
+		"CWeaponUSP":         common.EqUSP,
+		"CWeaponFiveSeven":   common.EqFiveSeven,
+	
+		// SMGs
+		"CWeaponMAC10":       common.EqMac10,
+		"CWeaponMP5":     	  common.EqMP5,
+		"CWeaponMP5Navy":     common.EqMP5,
+		"CWeaponMP7":         common.EqMP7,
+		"CWeaponMP9":         common.EqMP9,
+		"CWeaponBizon":       common.EqBizon,
+		"CWeaponUMP45":       common.EqUMP,
+		"CWeaponP90":         common.EqP90,
+	
+		// Rifles
+		"CWeaponFamas":       common.EqFamas,
+		"CWeaponGalilAR":     common.EqGalil,
+		"CWeaponM4A1":        common.EqM4A1,
+		"CWeaponAK47":        common.EqAK47,
+		"CWeaponSG552":       common.EqSG553,
+		"CWeaponSG553":       common.EqSG553,
+		"CWeaponSG556":       common.EqSG556,
+		"CWeaponAUG":         common.EqAUG,
+		"CWeaponSCAR20":      common.EqScar20,
+		"CWeaponG3SG1":       common.EqG3SG1,
+		"CWeaponSSG08":       common.EqSSG08,
+	
+		// Heavy
+		"CWeaponNova":        common.EqNova,
+		"CWeaponXM1014":      common.EqXM1014,
+		"CWeaponSawedoff":    common.EqSawedOff,
+		"CWeaponM249":        common.EqM249,
+		"CWeaponNegev":       common.EqNegev,
+		"CWeaponMag7":        common.EqMag7,
+	
+		// Other
+		"CWeaponTaser":       common.EqZeus,
+		"CC4":                common.EqBomb,
+		"CKnife":             common.EqKnife,
+		"CKnifeGG":           common.EqKnife,
+	}
+
+	// Update eq.Type if className is in the map
+	if newType, ok := eqMap[className]; ok {
+		return newType, true
+	}
+	
+	return common.EqUnknown, false
 }
 
 func parseTeamBuy(eqVal int64, side string, style string) string {
@@ -1227,6 +1256,7 @@ func registerRoundStartHandler(demoParser *dem.Parser, currentGame *Game, curren
 		currentGame.MatchPhases.RoundStarted = append(currentGame.MatchPhases.RoundStarted, int64(gs.IngameTick()))
 
 		if *roundStarted == 1 {
+			currentRound.IsPOVDemo = currentGame.IsPOVDemo
 			currentGame.Rounds = append(currentGame.Rounds, *currentRound)
 		} else {
 			*globalFrameIndex = 0
@@ -1348,6 +1378,7 @@ func registerRoundFreezeTimeEndHandler(demoParser *dem.Parser, currentGame *Game
 
 		if *roundInFreezetime == 0 {
 			// This means the RoundStart event did not fire, but the FreezeTimeEnd did
+			currentRound.IsPOVDemo = currentGame.IsPOVDemo
 			currentGame.Rounds = append(currentGame.Rounds, *currentRound)
 			*roundStarted = 1
 			*roundInEndTime = 0
@@ -1740,6 +1771,16 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			// cs2lens: Does't work with some POV demos
 			// currentWeaponFire.ZoomLevel = int64(e.Weapon.ZoomLevel())
 
+			if e.Weapon.Class() == common.EqClassUnknown {
+				if e.Weapon.Entity != nil {
+					grenadeType, _ := getEquipmentType(e.Weapon.Entity.ID(), gs)
+					currentWeaponFire.Weapon = grenadeType.String()
+					currentWeaponFire.WeaponClass = convertWeaponClass(grenadeType.Class())
+					// logger := log.New(os.Stderr, "cs2lens: ", log.Ldate|log.Ltime|log.Lshortfile)
+					// logger.Println("!!!!!!! Grenade thrown: ", grenadeType)
+				} 
+			}
+
 			// add
 			currentRound.WeaponFires = append(currentRound.WeaponFires, currentWeaponFire)
 		}
@@ -1969,10 +2010,28 @@ func registerGrenadeThrowHandler(demoParser *dem.Parser, currentGame *Game, curr
 			currentGrenade.ThrowTick = int64(gs.IngameTick())
 			currentGrenade.ThrowSecond = determineSecond(currentGrenade.ThrowTick, *currentRound, currentGame.TickRate)
 			currentGrenade.ThrowClockTime = calculateClocktime(currentGrenade.ThrowTick, *currentRound, currentGame.TickRate)
-
+			currentGrenade.CS2LensEntityID = int64(e.Projectile.Entity.ID())
 			currentGrenade.ThrowerSteamID = int64(e.Projectile.Thrower.SteamID64)
 			currentGrenade.ThrowerName = e.Projectile.Thrower.Name
-			currentGrenade.Grenade = e.Projectile.WeaponInstance.String()
+			if e.Projectile.WeaponInstance.Entity == nil {
+				id := e.Projectile.Entity.ID()
+				entity, ok := gs.Entities()[id]
+				if entity != nil && ok {
+				    grenadeType, ok := getGrenadeType(entity)
+					if ok {
+						currentGrenade.Grenade = grenadeType
+					} else {
+						return
+					}
+				} else {
+					return
+				}
+			} else {
+				currentGrenade.Grenade = e.Projectile.WeaponInstance.String()
+				if currentGrenade.Grenade == "" {
+					return
+				}
+			}
 
 			tTeam := ""
 			ctTeam := ""
@@ -2003,6 +2062,10 @@ func registerGrenadeThrowHandler(demoParser *dem.Parser, currentGame *Game, curr
 
 			// Player location (use weaponfire event)
 			playerPos := e.Projectile.Position()
+			// POV demos have missing projectile positions. Use player position instead.
+			if playerPos.X == 0 && playerPos.Y == 0 && playerPos.Z == 0 && e.Projectile.Thrower != nil {
+				playerPos = e.Projectile.Thrower.LastAlivePosition
+			}
 
 			currentGrenade.ThrowerX = playerPos.X
 			currentGrenade.ThrowerY = playerPos.Y
@@ -2010,7 +2073,14 @@ func registerGrenadeThrowHandler(demoParser *dem.Parser, currentGame *Game, curr
 
 			// Add grenade event
 			if playerSide == "CT" || playerSide == "T" {
+				// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+				// logger.Println("Grenade throw event", currentGrenade.Grenade, currentGrenade.CS2LensEntityID, gs.IngameTick())
 				currentRound.Grenades = append(currentRound.Grenades, currentGrenade)
+			}
+		} else {
+			if e.Projectile != nil {
+				// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+				// logger.Println("MISSING THROWER", e.Projectile.Entity.ID())
 			}
 		}
 	})
@@ -2019,7 +2089,6 @@ func registerGrenadeThrowHandler(demoParser *dem.Parser, currentGame *Game, curr
 func registerGrenadeDestroyHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
 	(*demoParser).RegisterEventHandler(func(e events.GrenadeProjectileDestroy) {
 		gs := (*demoParser).GameState()
-
 		if e.Projectile != nil && e.Projectile.Thrower != nil {
 			for i, g := range currentRound.Grenades {
 				if g.UniqueID == e.Projectile.UniqueID() {
@@ -2102,7 +2171,7 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			// Parse projectiles objects
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
-
+			// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 			for _, ele := range allGrenades {
 				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
 				if len(ele.Trajectory2) > 0 {
@@ -2115,7 +2184,26 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
 					currentProjectile.UniqueID = ele.UniqueID()
+					currentProjectile.CS2LensEntityID = int64(ele.Entity.ID())
 					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+
+					// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+					// logger.Println("Projectile trajectory empty", ele.Entity.ID())
+				} else if currentGame.IsPOVDemo {
+					currentProjectile := GrenadeInfo{}
+					grenadeType, ok := getGrenadeType(ele.Entity)
+					if ok {
+						currentProjectile.ProjectileType = grenadeType
+						currentProjectile.X = 0
+						currentProjectile.Y = 0
+						currentProjectile.Z = 0
+						currentProjectile.UniqueID = ele.UniqueID()
+						currentProjectile.CS2LensEntityID = int64(ele.Entity.ID())
+						currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+
+						// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+						// logger.Println("Projectile trajectory empty", ele.Entity.ID())
+					}
 				}
 			}
 
@@ -2503,6 +2591,137 @@ func inFreezeTimeFromGameRules(gameState *dem.GameState) bool {
 	return false
 }
 
+func registerPOVRecordingPlayerDetectedHandler(demoParser *dem.Parser, currentGame *Game) {
+	(*demoParser).RegisterEventHandler(func(e events.POVRecordingPlayerDetected) {
+		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+		logger.Println("POV recording player detected")
+		currentGame.IsPOVDemo = true
+	})
+}
+
+
+// CS2lens debuggers for grenades
+
+// func registerHEExplodeHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.HeExplode) {
+// 		// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		// logger.Println("HEExplode", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 		found := false
+// 		for i, g := range currentRound.Grenades {
+// 			if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+// 				currentRound.Grenades[i].DestroyTick = int64((*demoParser).GameState().IngameTick())
+// 				// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 				// logger.Println("HE Grenade Exploded", e.GrenadeEntityID, currentRound.Grenades[i].DestroyTick)
+// 			}
+// 		}
+// 		if !found {
+// 			logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 			logger.Println("--- HE Grenade Not found", e.GrenadeEntityID)
+// 		}
+// 	})
+// }
+
+// func registerFlashExplodeHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.FlashExplode) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("FlashExplode", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 		found := false
+// 		for i, g := range currentRound.Grenades {
+// 			if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+// 				currentRound.Grenades[i].DestroyTick = int64((*demoParser).GameState().IngameTick())
+// 				logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 				logger.Println("Flash Grenade Exploded", e.GrenadeEntityID, currentRound.Grenades[i].DestroyTick)
+// 				found = true
+// 			}
+// 		}
+// 		if !found {
+// 			logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 			logger.Println("--- Flash Grenade Not found", e.GrenadeEntityID)
+// 		}
+// 	})
+// }
+
+// func registerDecoyStartHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.DecoyStart) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("DecoyStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 		found := false
+// 		for i, g := range currentRound.Grenades {
+// 			if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+// 				currentRound.Grenades[i].DestroyTick = int64((*demoParser).GameState().IngameTick())
+// 				logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 				logger.Println("Decoy Grenade Exploded", e.GrenadeEntityID, currentRound.Grenades[i].DestroyTick)
+// 				found = true
+// 			}
+// 		}
+// 		if !found {
+// 			logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 			logger.Println("--- Decoy Grenade Not found", e.GrenadeEntityID)
+// 		}
+// 	})
+// }
+
+// func registerDecoyExpiredHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.DecoyExpired) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("DecoyExpired", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 	})
+// }
+
+// func registerSmokeStartHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.SmokeStart) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("SmokeStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 		found := false
+// 		for i, g := range currentRound.Grenades {
+// 			if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+// 				currentRound.Grenades[i].DestroyTick = int64((*demoParser).GameState().IngameTick())
+// 				logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 				logger.Println("Smoke Grenade Exploded", e.GrenadeEntityID, currentRound.Grenades[i].DestroyTick)
+// 				found = true
+// 			}
+// 		}
+// 		if !found {
+// 			logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 			logger.Println("--- Smoke Grenade Not found", e.GrenadeEntityID)
+// 		}
+// 	})
+// }
+
+// func registerSmokeExpiredHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.SmokeExpired) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("SmokeExpired", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 	})
+// }
+
+// func registerInfernoStartHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.FireGrenadeStart) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("InfernoStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 		found := false
+// 		for i, g := range currentRound.Grenades {
+// 			if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+// 				currentRound.Grenades[i].DestroyTick = int64((*demoParser).GameState().IngameTick())
+// 				logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 				logger.Println("Fire Grenade Exploded", e.GrenadeEntityID, currentRound.Grenades[i].DestroyTick)
+// 				found = true
+// 			}
+// 		}
+// 		if !found {
+// 			logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 			logger.Println("--- Fire Grenade Not found", e.GrenadeEntityID)
+// 		}
+// 	})
+// }
+
+// func registerInfernoExpiredHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound) {
+// 	(*demoParser).RegisterEventHandler(func(e events.FireGrenadeExpired) {
+// 		logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+// 		logger.Println("InfernoExpired", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
+// 	})
+// }
+
 func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRound *GameRound, smokes *[]Smoke,
 	roundInFreezetime *int, roundInEndTime *int, currentFrameIdx *int, parseFrames *bool, globalFrameIndex *int64) {
 	(*demoParser).RegisterEventHandler(func(e events.FrameDone) {
@@ -2602,7 +2821,27 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
 					currentProjectile.UniqueID = ele.UniqueID()
+					currentProjectile.CS2LensEntityID = int64(ele.Entity.ID())
 					currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+
+					// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+					// logger.Println("Projectile trajectory not empty", ele.Entity.ID())
+				} else if (currentGame.IsPOVDemo) {
+					// There is no trajectory data. We will fill it with zeros and estimate it after the round
+					currentProjectile := GrenadeInfo{}
+					grenadeType, ok := getGrenadeType(ele.Entity)
+					if ok {
+						currentProjectile.ProjectileType = grenadeType
+						currentProjectile.X = 0
+						currentProjectile.Y = 0
+						currentProjectile.Z = 0
+						currentProjectile.UniqueID = ele.UniqueID()
+						currentProjectile.CS2LensEntityID = int64(ele.Entity.ID())
+						currentFrame.Projectiles = append(currentFrame.Projectiles, currentProjectile)
+
+						// logger := log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+						// logger.Println("Projectile trajectory empty", ele.Entity.ID())
+					}
 				}
 			}
 
@@ -2818,6 +3057,9 @@ func main() {
 	currentGame.MatchPhases.RoundEnded = []int64{}
 	currentGame.MatchPhases.RoundEndedOfficial = []int64{}
 
+	// Detect POV demo
+	registerPOVRecordingPlayerDetectedHandler(&p, &currentGame)
+
 	// Parse rank updates
 	registerRankUpdateHandler(&p, &currentGame)
 
@@ -2875,6 +3117,16 @@ func main() {
 	// Parse damage events
 	registerDamageHandler(&p, &currentGame, &currentRound)
 
+	// cs2lens debuggers for nades
+	// registerHEExplodeHandler(&p, &currentGame, &currentRound)
+	// registerFlashExplodeHandler(&p, &currentGame, &currentRound)
+	// registerDecoyStartHandler(&p, &currentGame, &currentRound)
+	// registerDecoyExpiredHandler(&p, &currentGame, &currentRound)
+	// registerSmokeStartHandler(&p, &currentGame, &currentRound)
+	// registerSmokeExpiredHandler(&p, &currentGame, &currentRound)
+	// registerInfernoStartHandler(&p, &currentGame, &currentRound)
+	// registerInfernoExpiredHandler(&p, &currentGame, &currentRound)
+
 	// Parse a demo frame. If parse rate is 1, then every frame is parsed.
 	// If parse rate is 2, then every 2 frames is parsed, and so on
 	registerFrameHandler(&p, &currentGame, &currentRound, &smokes, &roundInFreezetime,
@@ -2892,6 +3144,7 @@ func main() {
 	currentGame.ParsedToFrame = int64(p.CurrentFrame())
 
 	// Add the most recent round
+	currentRound.IsPOVDemo = currentGame.IsPOVDemo
 	currentGame.Rounds = append(currentGame.Rounds, currentRound)
 
 	// CSGOLENS: Early CS2 support hack
@@ -2910,6 +3163,7 @@ func main() {
 	// 	logger.Println("end tick:", currentGame.Rounds[i].EndTick)
 	// 	logger.Println("FreezeTimeEndTick:", currentGame.Rounds[i].FreezeTimeEndTick)
 	// 	logger.Println("warmup:", currentGame.Rounds[i].IsWarmup)
+	// 	logger.Println("POVDemo:", currentGame.Rounds[i].IsPOVDemo)
 	// }
 
 	// Print round count
