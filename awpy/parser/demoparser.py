@@ -907,7 +907,7 @@ class DemoParser:
             if remove_bad_scoring:
                 self.remove_bad_scoring()
 
-            # self.remove_all_but_first()
+            self.remove_all_but_first()
             self.renumber_rounds()
             self.renumber_frames()
             # self.rescore_rounds() -- Need to edit to take into account half switches
