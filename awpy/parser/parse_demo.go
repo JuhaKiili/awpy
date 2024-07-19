@@ -1641,6 +1641,12 @@ func registerRoundEndHandler(demoParser *dem.Parser, currentGame *Game, currentR
 					}
 				}
 			}
+
+			// Print all grenades
+			for _, grenade := range currentRound.Grenades {
+				logger.Println("Grenade with ID ", grenade.CS2LensEntityID, " thrown by ", grenade.ThrowerName, grenade.ThrowerX, grenade.ThrowerY, grenade.ThrowerZ, " exploded at ", grenade.GrenadeX, grenade.GrenadeY, grenade.GrenadeZ)
+			}
+
 		}
 
 		if *roundStarted == 1 {
@@ -2308,10 +2314,11 @@ func registerGrenadeDestroyHandler(demoParser *dem.Parser, currentGame *Game, cu
 						currentRound.Grenades[i].DestroyTick, *currentRound, currentGame.TickRate)
 					// Grenade Location
 					grenadePos := e.Projectile.Position()
-
-					currentRound.Grenades[i].GrenadeX = grenadePos.X
-					currentRound.Grenades[i].GrenadeY = grenadePos.Y
-					currentRound.Grenades[i].GrenadeZ = grenadePos.Z
+					if grenadePos.X != 0 && grenadePos.Y != 0 && grenadePos.Z != 0 {
+						currentRound.Grenades[i].GrenadeX = grenadePos.X
+						currentRound.Grenades[i].GrenadeY = grenadePos.Y
+						currentRound.Grenades[i].GrenadeZ = grenadePos.Z
+					}
 				}
 			}
 		}
@@ -2826,7 +2833,7 @@ func registerHEExplodeHandler(demoParser *dem.Parser, currentGame *Game, current
 			// logger.Println("HEExplode", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
 			found := false
 			for i, g := range currentRound.Grenades {
-				if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+				if g.CS2LensEntityID == int64(e.GrenadeEntityID) && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 					currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 					currentRound.Grenades[i].GrenadeX = e.Position.X
 					currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -2851,7 +2858,7 @@ func registerFlashExplodeHandler(demoParser *dem.Parser, currentGame *Game, curr
 			// logger.Println("FlashExplode", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
 			found := false
 			for i, g := range currentRound.Grenades {
-				if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+				if g.CS2LensEntityID == int64(e.GrenadeEntityID) && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 					currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 					currentRound.Grenades[i].GrenadeX = e.Position.X
 					currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -2876,7 +2883,7 @@ func registerDecoyStartHandler(demoParser *dem.Parser, currentGame *Game, curren
 			// logger.Println("DecoyStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
 			found := false
 			for i, g := range currentRound.Grenades {
-				if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+				if g.CS2LensEntityID == int64(e.GrenadeEntityID) && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 					currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 					currentRound.Grenades[i].GrenadeX = e.Position.X
 					currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -2901,7 +2908,7 @@ func registerSmokeStartHandler(demoParser *dem.Parser, currentGame *Game, curren
 			// logger.Println("SmokeStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
 			found := false
 			for i, g := range currentRound.Grenades {
-				if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+				if g.CS2LensEntityID == int64(e.GrenadeEntityID) && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 					currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 					currentRound.Grenades[i].GrenadeX = e.Position.X
 					currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -2926,7 +2933,7 @@ func registerInfernoStartHandler(demoParser *dem.Parser, currentGame *Game, curr
 			// logger.Println("InfernoStart", e.GrenadeEntityID, (*demoParser).GameState().IngameTick())
 			found := false
 			for i, g := range currentRound.Grenades {
-				if g.CS2LensEntityID == int64(e.GrenadeEntityID) {
+				if g.CS2LensEntityID == int64(e.GrenadeEntityID) && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 					currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 					currentRound.Grenades[i].GrenadeX = e.Position.X
 					currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -2949,7 +2956,7 @@ func registerInfernoStartHandler(demoParser *dem.Parser, currentGame *Game, curr
 					}
 					if len(potentials) == 1 {
 						for i, g := range currentRound.Grenades {
-							if g.CS2LensEntityID == potentials[0].CS2LensEntityID {
+							if g.CS2LensEntityID == potentials[0].CS2LensEntityID && e.Position.X != 0 && e.Position.Y != 0 && e.Position.Z != 0 {
 								currentRound.Grenades[i].ExplodeTick = int64((*demoParser).GameState().IngameTick())
 								currentRound.Grenades[i].GrenadeX = e.Position.X
 								currentRound.Grenades[i].GrenadeY = e.Position.Y
@@ -3079,7 +3086,7 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 					// Update explode tick for mollies just in case the real explode event is not triggered
 					if currentGame.IsPOVDemo && (currentProjectile.ProjectileType == "Molotov" || currentProjectile.ProjectileType == "Incendiary Grenade")  {
 						for i, g := range currentRound.Grenades {
-							if g.CS2LensEntityID == int64(ele.Entity.ID()) {
+							if g.CS2LensEntityID == int64(ele.Entity.ID()) && objPos.Position.X != 0 && objPos.Position.Y != 0 && objPos.Position.Z != 0 {
 								currentRound.Grenades[i].ExplodeTick = int64(gs.IngameTick())
 								currentRound.Grenades[i].GrenadeX = objPos.Position.X
 								currentRound.Grenades[i].GrenadeY = objPos.Position.Y
