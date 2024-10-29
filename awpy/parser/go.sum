@@ -1,13 +1,5 @@
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.3-cs2lens-pov-v5 h1:9yz5/X5IOqaObaZ7IrL6cLQ5cLk0culiT3QAiZSTXjk=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.1.3-cs2lens-pov-v5/go.mod h1:cXkls5msNlWrBP0WvJYsIiobIpPkbhC2VE4RBZkUglw=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v6 h1:vp/xDebsP0ulzdACTLyGmafuIltFSxA0s/hUvhPxLbE=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v6/go.mod h1:cXkls5msNlWrBP0WvJYsIiobIpPkbhC2VE4RBZkUglw=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v7 h1:oOXzBL7cskVWFGtSETpKrMMKyJnQzwBQKIdstIKk0VM=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v7/go.mod h1:cXkls5msNlWrBP0WvJYsIiobIpPkbhC2VE4RBZkUglw=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v8 h1:RPQ3M/yrkbKRTBOOdyuhzfK2GWECJqcRuIRqaWIExFo=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v8/go.mod h1:cXkls5msNlWrBP0WvJYsIiobIpPkbhC2VE4RBZkUglw=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v9 h1:EnTMOECLFSTOuLLrPKydjezLRVu0DKmcXPqS84eHlCc=
-github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v9/go.mod h1:cXkls5msNlWrBP0WvJYsIiobIpPkbhC2VE4RBZkUglw=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v10 h1:HwxIgJcwjaQxIx8z73fPWUiXpuVjPzkSdqosj/LDZLw=
+github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v10/go.mod h1:HoKANU0AlFzSgtEJ4YD/pMQw3L0dNRgtn2GPVD+tF7I=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -22,8 +14,8 @@ github.com/markus-wa/demoinfocs-golang/v3 v3.3.0 h1:cXAI081cH5tDmmyPuyUzuIGeP8st
 github.com/markus-wa/demoinfocs-golang/v3 v3.3.0/go.mod h1:NzAkCtDshPkoSMg3hAyojkmHE4ZgnNWCM1Vv4yCPLsI=
 github.com/markus-wa/go-unassert v0.1.3 h1:4N2fPLUS3929Rmkv94jbWskjsLiyNT2yQpCulTFFWfM=
 github.com/markus-wa/go-unassert v0.1.3/go.mod h1:/pqt7a0LRmdsRNYQ2nU3SGrXfw3bLXrvIkakY/6jpPY=
-github.com/markus-wa/gobitread v0.2.3 h1:COx7dtYQ7Q+77hgUmD+O4MvOcqG7y17RP3Z7BbjRvPs=
-github.com/markus-wa/gobitread v0.2.3/go.mod h1:PcWXMH4gx7o2CKslbkFkLyJB/aHW7JVRG3MRZe3PINg=
+github.com/markus-wa/gobitread v0.2.4 h1:BDr3dZnsqntDD4D8E7DzhkQlASIkQdfxCXLhWcI2K5A=
+github.com/markus-wa/gobitread v0.2.4/go.mod h1:PcWXMH4gx7o2CKslbkFkLyJB/aHW7JVRG3MRZe3PINg=
 github.com/markus-wa/godispatch v1.4.1 h1:Cdff5x33ShuX3sDmUbYWejk7tOuoHErFYMhUc2h7sLc=
 github.com/markus-wa/godispatch v1.4.1/go.mod h1:tk8L0yzLO4oAcFwM2sABMge0HRDJMdE8E7xm4gK/+xM=
 github.com/markus-wa/ice-cipher-go v0.0.0-20230901094113-348096939ba7 h1:aR9pvnlnBxifXBmzidpAiq2prLSGlkhE904qnk2sCz4=
@@ -49,8 +41,8 @@ golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 h1:m64FZMko/V45gv0bNmrNYoDEq
 golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63/go.mod h1:0v4NqG35kSWCMzLaMeX+IQrlSnVE/bqGSyC2cz/9Le8=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-google.golang.org/protobuf v1.34.1 h1:9ddQBjfCyZPOHPUiPxpYESBLc+T8P3E+Vo4IbKZgFWg=
-google.golang.org/protobuf v1.34.1/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
+google.golang.org/protobuf v1.34.2 h1:6xV6lTsCfpGD21XK49h7MhtcApnLqkfYgPcdHftf6hg=
+google.golang.org/protobuf v1.34.2/go.mod h1:qYOHts0dSfpeUzUFpOMr/WGzszTmLH+DiWniOlNbLDw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

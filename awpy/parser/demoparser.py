@@ -890,23 +890,32 @@ class DemoParser:
             dict: A dictionary of the cleaned demo.
         """
         if self.json:
+            print("ROUNDS BEFORE", len(self.json["gameRounds"]))
             if remove_no_frames:
                 self.remove_rounds_with_no_frames()
+                print("ROUNDS AFTER 1", len(self.json["gameRounds"]))
             if remove_warmups:
                 self.remove_warmups()
+                print("ROUNDS AFTER 2", len(self.json["gameRounds"]))
             if remove_knifes:
                 self.remove_knife_rounds()
+                print("ROUNDS AFTER 3", len(self.json["gameRounds"]))
             if remove_bad_timings:
                 self.remove_time_rounds()
+                print("ROUNDS AFTER 4", len(self.json["gameRounds"]))
             if remove_excess_players:
                 self.remove_excess_players()
+                print("ROUNDS AFTER 5", len(self.json["gameRounds"]))
             if remove_excess_kills:
                 self.remove_excess_kill_rounds()
+                print("ROUNDS AFTER 6", len(self.json["gameRounds"]))
             if remove_bad_endings:
                 self.remove_end_round()
+                print("ROUNDS AFTER 7", len(self.json["gameRounds"]))
             if remove_bad_scoring:
                 self.remove_bad_scoring()
-
+            print("ROUNDS AFTER", len(self.json["gameRounds"]))
+            
             # self.remove_all_but_first()
             self.renumber_rounds()
             self.renumber_frames()
