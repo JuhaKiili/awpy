@@ -18,9 +18,9 @@ require (
 	github.com/markus-wa/quickhull-go/v2 v2.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
+	google.golang.org/protobuf v1.36.4 // indirect
 )
 
-replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.2.1-cs2lens-pov-v14
+replace github.com/markus-wa/demoinfocs-golang/v4 => github.com/JuhaKiili/demoinfocs-golang/v4 v4.3.3-cs2lens-pov-v15
 
 //replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang-fork
