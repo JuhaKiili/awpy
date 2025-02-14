@@ -1327,6 +1327,14 @@ class DemoParser:
                         game_frame["ct"]["players"],
                     )
 
+                    # Remove players with steamID 0
+                    for side in ("t", "ct"):
+                        for player in game_frame[side]["players"]:
+                            if player["steamID"] == 0:
+                                print(f"Round {game_round['roundNum']}: Removing players with steamID 0")
+                                self.remove_player_from_round(game_round, 0)
+                                break
+
                     total_players = len(player_lists[0] or []) + len(player_lists[1] or [])
                     print("---")
                     print(f"Round {game_round['roundNum']}: Total players: {total_players}")
@@ -1384,7 +1392,7 @@ class DemoParser:
                             print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from CT {str(firstDied)}")
                         else:
                             break
-                    
+
                     if all(
                         len(player_list or []) <= max_players and len(player_list or []) >= min_players
                         for player_list in player_lists
