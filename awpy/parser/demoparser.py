@@ -1522,22 +1522,39 @@ class DemoParser:
             self.logger.error(msg)
             raise AttributeError(msg)
 
-    def remove_time_rounds(self) -> None:
+    # CS2Lens: Since updating to demoinfocs-golang v5, the freezeTimeEndTick check was removed for now
+    # TODO: Bring the check back and figure out why freezeTimeEndTick is slightly off
+    # example: startTick (165430) <= freezeTimeEndTick (165410)
+    def remove_time_rounds(self, check_freeze_time: bool = False) -> None:
         """Remove rounds with odd round timings.
+
+        Args:
+            check_freeze_time: Whether to include freezeTimeEndTick in the validation checks
 
         Raises:
             AttributeError: Raises an AttributeError if the .json attribute is None
         """
         if self.json:
-            cleaned_rounds = [
-                game_round
-                for game_round in self.json["gameRounds"] or []
-                if (
-                    (game_round["startTick"] <= game_round["endTick"])
-                    and (game_round["startTick"] <= game_round["endOfficialTick"])
-                    and (game_round["startTick"] <= game_round["freezeTimeEndTick"])
-                )
-            ]
+            # Build the filter condition based on check_freeze_time parameter
+            if check_freeze_time:
+                cleaned_rounds = [
+                    game_round
+                    for game_round in self.json["gameRounds"] or []
+                    if (
+                        (game_round["startTick"] <= game_round["endTick"])
+                        and (game_round["startTick"] <= game_round["endOfficialTick"])
+                        and (game_round["startTick"] <= game_round["freezeTimeEndTick"])
+                    )
+                ]
+            else:
+                cleaned_rounds = [
+                    game_round
+                    for game_round in self.json["gameRounds"] or []
+                    if (
+                        (game_round["startTick"] <= game_round["endTick"])
+                        and (game_round["startTick"] <= game_round["endOfficialTick"])
+                    )
+                ]
             self.json["gameRounds"] = cleaned_rounds
         else:
             msg = "JSON not found. Run .parse() or .read_json() if JSON already exists"

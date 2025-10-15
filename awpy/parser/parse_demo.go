@@ -11,9 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
-	common "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
-	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	dem "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs"
+	common "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
+	events "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/events"
+	msg "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/msg"
 )
 
 const unknown = "Unknown"
@@ -686,7 +687,7 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 				continue
 			}
 			className := serverClass.Name()
-	
+
 			// Define the mapping of class names to equipment types
 			eqMap := map[string]common.EquipmentType{
 				// Grenades
@@ -696,56 +697,56 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 				"CHEGrenade":         common.EqHE,
 				"CDecoyGrenade":      common.EqDecoy,
 				"CMolotovGrenade":    common.EqMolotov,
-			
+
 				// Pistols
-				"CWeaponElite":       common.EqDualBerettas,
-				"CWeaponTec9":        common.EqTec9,
-				"CWeaponHKP2000":     common.EqP2000,
-				"CWeaponGlock":       common.EqGlock,
-				"CWeaponP250":        common.EqP250,
-				"CWeaponDeagle":      common.EqDeagle,
-				"CDEagle":			  common.EqDeagle,
-				"CWeaponUSP":         common.EqUSP,
-				"CWeaponFiveSeven":   common.EqFiveSeven,
-			
+				"CWeaponElite":     common.EqDualBerettas,
+				"CWeaponTec9":      common.EqTec9,
+				"CWeaponHKP2000":   common.EqP2000,
+				"CWeaponGlock":     common.EqGlock,
+				"CWeaponP250":      common.EqP250,
+				"CWeaponDeagle":    common.EqDeagle,
+				"CDEagle":          common.EqDeagle,
+				"CWeaponUSP":       common.EqUSP,
+				"CWeaponFiveSeven": common.EqFiveSeven,
+
 				// SMGs
-				"CWeaponMAC10":       common.EqMac10,
-				"CWeaponMP5":     	  common.EqMP5,
-				"CWeaponMP5Navy":     common.EqMP5,
-				"CWeaponMP7":         common.EqMP7,
-				"CWeaponMP9":         common.EqMP9,
-				"CWeaponBizon":       common.EqBizon,
-				"CWeaponUMP45":       common.EqUMP,
-				"CWeaponP90":         common.EqP90,
-			
+				"CWeaponMAC10":   common.EqMac10,
+				"CWeaponMP5":     common.EqMP5,
+				"CWeaponMP5Navy": common.EqMP5,
+				"CWeaponMP7":     common.EqMP7,
+				"CWeaponMP9":     common.EqMP9,
+				"CWeaponBizon":   common.EqBizon,
+				"CWeaponUMP45":   common.EqUMP,
+				"CWeaponP90":     common.EqP90,
+
 				// Rifles
-				"CWeaponFamas":       common.EqFamas,
-				"CWeaponGalilAR":     common.EqGalil,
-				"CWeaponM4A1":        common.EqM4A1,
-				"CWeaponAK47":        common.EqAK47,
-				"CWeaponSG552":       common.EqSG553,
-				"CWeaponSG553":       common.EqSG553,
-				"CWeaponSG556":       common.EqSG556,
-				"CWeaponAUG":         common.EqAUG,
-				"CWeaponSCAR20":      common.EqScar20,
-				"CWeaponG3SG1":       common.EqG3SG1,
-				"CWeaponSSG08":       common.EqSSG08,
-			
+				"CWeaponFamas":   common.EqFamas,
+				"CWeaponGalilAR": common.EqGalil,
+				"CWeaponM4A1":    common.EqM4A1,
+				"CWeaponAK47":    common.EqAK47,
+				"CWeaponSG552":   common.EqSG553,
+				"CWeaponSG553":   common.EqSG553,
+				"CWeaponSG556":   common.EqSG556,
+				"CWeaponAUG":     common.EqAUG,
+				"CWeaponSCAR20":  common.EqScar20,
+				"CWeaponG3SG1":   common.EqG3SG1,
+				"CWeaponSSG08":   common.EqSSG08,
+
 				// Heavy
-				"CWeaponNova":        common.EqNova,
-				"CWeaponXM1014":      common.EqXM1014,
-				"CWeaponSawedoff":    common.EqSawedOff,
-				"CWeaponM249":        common.EqM249,
-				"CWeaponNegev":       common.EqNegev,
-				"CWeaponMag7":        common.EqMag7,
-			
+				"CWeaponNova":     common.EqNova,
+				"CWeaponXM1014":   common.EqXM1014,
+				"CWeaponSawedoff": common.EqSawedOff,
+				"CWeaponM249":     common.EqM249,
+				"CWeaponNegev":    common.EqNegev,
+				"CWeaponMag7":     common.EqMag7,
+
 				// Other
-				"CWeaponTaser":       common.EqZeus,
-				"CC4":                common.EqBomb,
-				"CKnife":             common.EqKnife,
-				"CKnifeGG":           common.EqKnife,
+				"CWeaponTaser": common.EqZeus,
+				"CC4":          common.EqBomb,
+				"CKnife":       common.EqKnife,
+				"CKnifeGG":     common.EqKnife,
 			}
-	
+
 			// Update eq.Type if className is in the map
 			if newType, ok := eqMap[className]; ok {
 				eq.Type = newType
@@ -874,7 +875,7 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 					}
 					if w.Type == common.EqFlash {
 						currentPlayer.FlashGrenade += int64(w.AmmoInMagazine())
-						
+
 						// Doesn't work with demoinfocs-golang 4.1.0
 						//currentPlayer.FlashGrenade += int64(w.AmmoInMagazine()) + int64(w.AmmoReserve())
 					}
@@ -1172,11 +1173,14 @@ func registerSmokeHandler(demoParser *dem.Parser, smokes *[]Smoke) {
 	(*demoParser).RegisterEventHandler(func(e events.SmokeStart) {
 		gs := (*demoParser).GameState()
 		s := Smoke{}
-		if e.Grenade != nil {
-			s.GrenadeEntityID = e.Grenade.UniqueID()
-		} else {
-			s.GrenadeEntityID = int64(e.GrenadeEntityID)
-		}
+		// CS2lens: Since updating to demoinfocs-golang v5, the e.Grenade.UniqueID() is not available here
+		// if e.Grenade != nil {
+		// 	s.GrenadeEntityID = e.Grenade.UniqueID()
+		// } else {
+		// 	s.GrenadeEntityID = int64(e.GrenadeEntityID)
+		// }
+
+		s.GrenadeEntityID = int64(e.GrenadeEntityID)
 		s.StartTick = int64(gs.IngameTick())
 		s.X = e.Position.X
 		s.Y = e.Position.Y
@@ -1194,11 +1198,14 @@ func registerSmokeHandler(demoParser *dem.Parser, smokes *[]Smoke) {
 
 	(*demoParser).RegisterEventHandler(func(e events.SmokeExpired) {
 		var removeID int64
-		if e.Grenade != nil {
-			removeID = e.Grenade.UniqueID()
-		} else {
-			removeID = int64(e.GrenadeEntityID)
-		}
+
+		// CS2lens: Since updating to demoinfocs-golang v5, the grenade is not available here
+		// if e.Grenade != nil {
+		// 	removeID = e.Grenade.UniqueID()
+		// } else {
+		// 	removeID = int64(e.GrenadeEntityID)
+		// }
+		removeID = int64(e.GrenadeEntityID)
 		for i, ele := range *smokes {
 			if ele.GrenadeEntityID == removeID {
 				*smokes = removeExpiredSmoke(*smokes, i)
@@ -1729,7 +1736,7 @@ func registerWeaponFiresHandler(demoParser *dem.Parser, currentGame *Game, curre
 			currentWeaponFire.Weapon = e.Weapon.String()
 			currentWeaponFire.WeaponClass = convertWeaponClass(e.Weapon.Class())
 			currentWeaponFire.AmmoInMagazine = int64(e.Weapon.AmmoInMagazine())
-			
+
 			// Doesn't work with demoinfocs-golang 4.1.0
 			//currentWeaponFire.AmmoInReserve = int64(e.Weapon.AmmoReserve())
 
@@ -2104,13 +2111,13 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentFrame.Projectiles = []GrenadeInfo{}
 
 			for _, ele := range allGrenades {
-				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
-				if len(ele.Trajectory2) > 0 {
+				// Only proceed if ele.Trajectory is not empty to avoid index out of range error
+				if len(ele.Trajectory) > 0 {
 					currentProjectile := GrenadeInfo{}
 					currentProjectile.ProjectileType = ele.WeaponInstance.String()
 					// Safely access the last element since we now know the slice is not empty
-					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
-	
+					objPos := ele.Trajectory[len(ele.Trajectory)-1]
+
 					currentProjectile.X = objPos.Position.X
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
@@ -2208,7 +2215,7 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentKill.AttackerY = &attackerPos.Y
 			currentKill.AttackerZ = &attackerPos.Z
 
-			// Doesn't work with demoinfocs-golang 4.1.0 
+			// Doesn't work with demoinfocs-golang 4.1.0
 			// attackerViewX := float64(e.Killer.ViewDirectionX())
 			// attackerViewY := float64(e.Killer.ViewDirectionY())
 			// currentKill.AttackerViewX = &attackerViewX
@@ -2247,7 +2254,7 @@ func registerKillHandler(demoParser *dem.Parser, currentGame *Game, currentRound
 			currentKill.VictimY = &victimPos.Y
 			currentKill.VictimZ = &victimPos.Z
 
-			// Doesn't work with demoinfocs-golang 4.1.0 
+			// Doesn't work with demoinfocs-golang 4.1.0
 			// victimViewX := float64(e.Victim.ViewDirectionX())
 			// victimViewY := float64(e.Victim.ViewDirectionY())
 			// currentKill.VictimViewX = &victimViewX
@@ -2413,7 +2420,7 @@ func registerDamageHandler(demoParser *dem.Parser, currentGame *Game, currentRou
 			currentDamage.AttackerY = &attackerPos.Y
 			currentDamage.AttackerZ = &attackerPos.Z
 
-			// Doesn't work with demoinfocs-golang 4.1.0 
+			// Doesn't work with demoinfocs-golang 4.1.0
 			// attackerViewX := float64(e.Attacker.ViewDirectionX())
 			// attackerViewY := float64(e.Attacker.ViewDirectionY())
 			// currentDamage.AttackerViewX = &attackerViewX
@@ -2459,8 +2466,8 @@ func registerDamageHandler(demoParser *dem.Parser, currentGame *Game, currentRou
 			currentDamage.VictimX = &victimPos.X
 			currentDamage.VictimY = &victimPos.Y
 			currentDamage.VictimZ = &victimPos.Z
-			
-			// Doesn't work with demoinfocs-golang 4.1.0 
+
+			// Doesn't work with demoinfocs-golang 4.1.0
 			// victimViewX := float64(e.Player.ViewDirectionX())
 			// victimViewY := float64(e.Player.ViewDirectionY())
 			// currentDamage.VictimViewX = &victimViewX
@@ -2508,10 +2515,11 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 	(*demoParser).RegisterEventHandler(func(e events.FrameDone) {
 		gs := (*demoParser).GameState()
 
-		currentGame.ClientName = (*demoParser).Header().ClientName
-		currentGame.Map = (*demoParser).Header().MapName
-		currentGame.PlaybackTicks = int64((*demoParser).Header().PlaybackTicks)
-		currentGame.PlaybackFrames = int64((*demoParser).Header().PlaybackFrames)
+		// CS2lens: Since updating to demoinfocs-golang v5, the header is not available
+		// currentGame.ClientName = (*demoParser).Header().ClientName
+		// currentGame.Map = (*demoParser).Header().MapName
+		// currentGame.PlaybackTicks = int64((*demoParser).Header().PlaybackTicks)
+		// currentGame.PlaybackFrames = int64((*demoParser).Header().PlaybackFrames)
 
 		// If the game says we are not in freeze time anymore
 		// but the toggle still thinks we are then correct the toggle
@@ -2591,13 +2599,13 @@ func registerFrameHandler(demoParser *dem.Parser, currentGame *Game, currentRoun
 			allGrenades := gs.GrenadeProjectiles()
 			currentFrame.Projectiles = []GrenadeInfo{}
 			for _, ele := range allGrenades {
-				// Only proceed if ele.Trajectory2 is not empty to avoid index out of range error
-				if len(ele.Trajectory2) > 0 {
+				// Only proceed if ele.Trajectory is not empty to avoid index out of range error
+				if len(ele.Trajectory) > 0 {
 					currentProjectile := GrenadeInfo{}
 					currentProjectile.ProjectileType = ele.WeaponInstance.String()
 					// Safely access the last element since we now know the slice is not empty
-					objPos := ele.Trajectory2[len(ele.Trajectory2)-1]
-	
+					objPos := ele.Trajectory[len(ele.Trajectory)-1]
+
 					currentProjectile.X = objPos.Position.X
 					currentProjectile.Y = objPos.Position.Y
 					currentProjectile.Z = objPos.Position.Z
@@ -2751,13 +2759,15 @@ func main() {
 	p := dem.NewParser(f)
 	defer p.Close()
 
+	// CS2lens: Since updating to demoinfocs-golang v5, the header is not available
 	// Parse demofile header
-	header, err := p.ParseHeader()
-	checkError(err)
+	// header, err := p.ParseHeader()
+	// checkError(err)
 
+	// CS2lens: Since updating to demoinfocs-golang v5, the map is not available here
 	// Parse nav mesh given the map name
-	currentMap := header.MapName
-	currentMap = cleanMapName(currentMap)
+	// currentMap := header.MapName
+	// currentMap = cleanMapName(currentMap)
 
 	// Create flags to guide parsing
 	roundStarted := 0
@@ -2769,15 +2779,24 @@ func main() {
 	// Create game object, then initial round object
 	currentGame := Game{}
 	currentGame.MatchName = *demoIDPtr
-	currentGame.Map = cleanMapName(currentMap)
+
+	// CS2lens: Since updating to demoinfocs-golang v5, the map is not available here
+	//currentGame.Map = cleanMapName(currentMap)
+
 	if p.TickRate() == 0 {
 		currentGame.TickRate = 128
 	} else {
 		currentGame.TickRate = int64(math.Round(p.TickRate())) // Rounds to 127 instead
 	}
-	currentGame.PlaybackTicks = int64(header.PlaybackTicks)
-	currentGame.PlaybackFrames = int64(header.PlaybackFrames)
-	currentGame.ClientName = header.ClientName
+
+	// CS2lens: Since updating to demoinfocs-golang v5, the header is not available
+	// currentGame.PlaybackTicks = int64(header.PlaybackTicks)
+	// currentGame.PlaybackFrames = int64(header.PlaybackFrames)
+	// currentGame.ClientName = header.ClientName
+
+	currentGame.PlaybackTicks = -1
+	currentGame.PlaybackFrames = -1
+	currentGame.ClientName = "N/A"
 
 	// Create empty smoke tracking list
 	smokes := []Smoke{}
@@ -2817,6 +2836,14 @@ func main() {
 	currentGame.MatchPhases.RoundFreezeEnded = []int64{}
 	currentGame.MatchPhases.RoundEnded = []int64{}
 	currentGame.MatchPhases.RoundEndedOfficial = []int64{}
+
+	// Register handler for server info to get map name
+	p.RegisterNetMessageHandler(func(m *msg.CSVCMsg_ServerInfo) {
+		mapName := m.GetMapName()
+		if mapName != "" {
+			currentGame.Map = cleanMapName(mapName)
+		}
+	})
 
 	// Parse rank updates
 	registerRankUpdateHandler(&p, &currentGame)
@@ -2883,7 +2910,7 @@ func main() {
 	err = p.ParseToEnd()
 	//logger.Println("Parsing complete")
 	// print errors
-	
+
 	// if err, log it
 	if err != nil {
 		logger.Println(err)
