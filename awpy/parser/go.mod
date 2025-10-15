@@ -23,6 +23,6 @@ require (
 	google.golang.org/protobuf v1.36.4 // indirect
 )
 
-replace github.com/markus-wa/demoinfocs-golang/v5 => github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v25
+replace github.com/markus-wa/demoinfocs-golang/v5 => github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v26
 
 //replace github.com/markus-wa/demoinfocs-golang/v4 => /home/juha/ws/demoinfocs-golang-fork
