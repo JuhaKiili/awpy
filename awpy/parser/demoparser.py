@@ -1197,6 +1197,85 @@ class DemoParser:
             print(f"Removing coach {player['name']} ({player['steamID']}) for not moving.")
             self.remove_player_from_round(game_round, player["steamID"])
     
+    def remove_coaches_with_empty_inventory(self, game_round: GameRound) -> None:
+        """Remove players who have empty inventory throughout the entire round.
+        
+        Coach players typically have empty inventories throughout the round as they
+        don't participate in the actual gameplay.
+        
+        Args:
+            game_round: Dictionary containing round data including frames
+        """
+        frames = game_round.get("frames", [])
+        if not frames:
+            return
+        
+        toBeRemoved = []
+        
+        # Get all players from the first frame
+        all_players = []
+        if frames and len(frames) > 0:
+            first_frame = frames[0]
+            for side in ("t", "ct"):
+                if side in first_frame and "players" in first_frame[side]:
+                    players = first_frame[side]["players"]
+                    if players is not None:
+                        for player in players:
+                            all_players.append((player["steamID"], player["name"], side))
+        
+        # Check each player's inventory across all frames
+        for player_id, player_name, player_side in all_players:
+            has_inventory_in_any_frame = False
+            
+            # Check if player has any inventory items in any frame
+            for frame in frames:
+                if frame is None:
+                    continue
+                for side in ("t", "ct"):
+                    if side not in frame or "players" not in frame[side]:
+                        continue
+                    players = frame[side]["players"]
+                    if players is not None:
+                        for player in players:
+                            if player["steamID"] == player_id:
+                                inventory = player.get("inventory", [])
+                                if inventory and len(inventory) > 0:
+                                    has_inventory_in_any_frame = True
+                                    break
+                    if has_inventory_in_any_frame:
+                        break
+                if has_inventory_in_any_frame:
+                    break
+            
+            # If player never had any inventory items, mark for removal
+            if not has_inventory_in_any_frame:
+                # Find the player object to remove
+                for frame in frames:
+                    if frame is None:
+                        continue
+                    for side in ("t", "ct"):
+                        if side not in frame or "players" not in frame[side]:
+                            continue
+                        players = frame[side]["players"]
+                        if players is not None:
+                            for player in players:
+                                if player["steamID"] == player_id:
+                                    toBeRemoved.append(player)
+                                    break
+                        if toBeRemoved and toBeRemoved[-1]["steamID"] == player_id:
+                            break
+                    if toBeRemoved and toBeRemoved[-1]["steamID"] == player_id:
+                        break
+        
+        # Remove duplicate entries (same player might be found in multiple frames)
+        unique_to_remove = {}
+        for player in toBeRemoved:
+            unique_to_remove[player["steamID"]] = player
+        
+        for player in unique_to_remove.values():
+            print(f"Removing coach {player['name']} ({player['steamID']}) for having empty inventory throughout round.")
+            self.remove_player_from_round(game_round, player["steamID"])
+    
     def remove_player_from_round(self, game_round, removed_steamID):
         # Remove player from game_round["t"] and game_round["ct"]
         for side in ("tSide", "ctSide"):
@@ -1346,6 +1425,10 @@ class DemoParser:
                     if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
                         print(f"Looking for coaches not moving")
                         self.remove_coaches_not_moving(game_round)
+
+                    if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
+                        print(f"Looking for coaches with empty inventory")
+                        self.remove_coaches_with_empty_inventory(game_round)
                         
                     print("Forcing teams based on player position")
                     switchedPlayers = set()
