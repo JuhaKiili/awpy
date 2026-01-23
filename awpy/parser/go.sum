@@ -1,13 +1,13 @@
-github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v26 h1:58e1In6l0fHtrnI3Jttvgh5GiNiy7vJIqlFpMzQkuGs=
-github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v26/go.mod h1:TEsVblv03oy8at+VG+/DiDowTeTN5BiVmyL78kNesz8=
+github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v27 h1:vUwTYhq6mk6iMY/9iqszddW4pIpv3Wta5i87gzH5uJs=
+github.com/JuhaKiili/demoinfocs-golang/v5 v5.0.3-cs2lens-pov-v27/go.mod h1:cnrd9QDLk2XroPtujR46xAKGEROHxEZgEw9Wy0Pido8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/geo v0.0.0-20180826223333-635502111454/go.mod h1:vgWZ7cu0fq0KY3PpEHsocXOWJpRtkcbKemU4IUw0M60=
 github.com/golang/geo v0.0.0-20230421003525-6adc56603217 h1:HKlyj6in2JV6wVkmQ4XmG/EIm+SCYlPZ+V4GWit7Z+I=
 github.com/golang/geo v0.0.0-20230421003525-6adc56603217/go.mod h1:8wI0hitZ3a1IxZfeH3/5I97CI8i5cLGsYe7xNhQGs9U=
-github.com/golang/snappy v0.0.4 h1:yAGX7huGHXlcLOEtBnF4w7FQwA26wojNCwOYAEhLjQM=
-github.com/golang/snappy v0.0.4/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
+github.com/golang/snappy v1.0.0 h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=
+github.com/golang/snappy v1.0.0/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
 github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/markus-wa/demoinfocs-golang/v3 v3.3.0 h1:cXAI081cH5tDmmyPuyUzuIGeP8strtVzdtRB5VlIvL8=
