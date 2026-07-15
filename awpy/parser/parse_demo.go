@@ -800,8 +800,9 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 	currentPlayer.IsDefusing = p.IsDefusing
 	currentPlayer.IsPlanting = p.IsPlanting
 	currentPlayer.IsReloading = p.IsReloading
-	currentPlayer.IsDuckingInProg = p.IsDuckingInProgress()
-	currentPlayer.IsUnducking = p.IsUnDuckingInProgress()
+	// CS2Lens: Doesn't work with some POV demos anymore since 2026-07-15
+	// currentPlayer.IsDuckingInProg = p.IsDuckingInProgress()
+	// currentPlayer.IsUnducking = p.IsUnDuckingInProgress()
 	currentPlayer.IsDucking = p.IsDucking()
 	currentPlayer.IsInBombZone = p.IsInBombZone()
 	currentPlayer.IsInBuyZone = p.IsInBuyZone()
