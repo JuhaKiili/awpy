@@ -775,6 +775,9 @@ func parsePlayer(gs dem.GameState, p *common.Player) PlayerInfo {
 	}
 
 	playerPos := p.LastAlivePosition
+	if p.IsAlive() {
+		playerPos = p.Position()
+	}
 	//playerEyePos := p.PositionEyes()
 	// playerVel := p.Velocity()
 
