@@ -1347,6 +1347,59 @@ class DemoParser:
                             player_switched = True  # Set the flag to indicate the player has been switched
                             break  # Break inner loop
 
+    def get_average_player_position(self, game_round, steam_id, max_frames=10):
+        """Average alive-player coordinates from the first max_frames of a round."""
+        x_sum = y_sum = z_sum = 0.0
+        count = 0
+
+        for frame in game_round.get("frames", [])[:max_frames]:
+            if frame is None:
+                continue
+
+            found_in_frame = False
+            for side in ("t", "ct"):
+                if side not in frame or frame[side] is None:
+                    continue
+                players = frame[side].get("players")
+                if players is None:
+                    continue
+
+                for player in players:
+                    if player["steamID"] != steam_id:
+                        continue
+                    if not player.get("isAlive", True):
+                        continue
+
+                    x_sum += player["x"]
+                    y_sum += player["y"]
+                    z_sum += player["z"]
+                    count += 1
+                    found_in_frame = True
+                    break
+
+                if found_in_frame:
+                    break
+
+        if count == 0:
+            return None
+
+        return {
+            "x": x_sum / count,
+            "y": y_sum / count,
+            "z": z_sum / count,
+        }
+
+    def get_inferred_player_side(self, game_round, player, map_name, max_frames=10):
+        """Infer player side from averaged position, falling back to demo-reported side."""
+        average_position = self.get_average_player_position(
+            game_round, player["steamID"], max_frames=max_frames
+        )
+        if average_position is None:
+            return player["side"]
+
+        average_player = {**player, **average_position}
+        return self.get_player_side(average_player, map_name)
+
     def get_player_side(self, player, mapName):
         if mapName in ("de_ancient", "de_anubis", "de_mirage", "de_inferno", "de_nuke", "de_overpass", "de_vertigo"):
             if mapName == "de_ancient":
@@ -1362,6 +1415,10 @@ class DemoParser:
             if mapName == "de_overpass":
                 return "T" if player["y"] < 0 else "CT"
             if mapName == "de_vertigo":
+                return "T" if player["y"] < 0 else "CT"
+            if mapName == "de_cache":
+                return "T" if player["x"] > 0 else "CT"
+            if mapName == "de_dust2":
                 return "T" if player["y"] < 0 else "CT"
         else:
             return player["side"]
@@ -1406,6 +1463,17 @@ class DemoParser:
                         game_frame["ct"]["players"],
                     )
 
+                    total_players = len(player_lists[0] or []) + len(player_lists[1] or [])
+                    print("---")
+                    print(f"Round {game_round['roundNum']}: Raw total players: {total_players}")
+                    print(f"Round {game_round['roundNum']}: Raw players before cleanup")
+                    for side, players in (("T", player_lists[0]), ("CT", player_lists[1])):
+                        player_details = ", ".join(
+                            f"{player.get('name', '<unknown>')} ({player.get('steamID')})"
+                            for player in players or []
+                        )
+                        print(f"Round {game_round['roundNum']}: Raw {side} players: {player_details}")
+
                     # Remove players with steamID 0
                     for side in ("t", "ct"):
                         for player in game_frame[side]["players"]:
@@ -1413,10 +1481,6 @@ class DemoParser:
                                 print(f"Round {game_round['roundNum']}: Removing players with steamID 0")
                                 self.remove_player_from_round(game_round, 0)
                                 break
-
-                    total_players = len(player_lists[0] or []) + len(player_lists[1] or [])
-                    print("---")
-                    print(f"Round {game_round['roundNum']}: Total players: {total_players}")
 
                     if len(player_lists[0]) > 5 or len(player_lists[1]) > 5:
                         print(f"Looking for coaches in (0,0,0) position")
@@ -1430,16 +1494,38 @@ class DemoParser:
                         print(f"Looking for coaches with empty inventory")
                         self.remove_coaches_with_empty_inventory(game_round)
                         
-                    print("Forcing teams based on player position")
-                    switchedPlayers = set()
-                    for side in ("t", "ct"):
-                        for playerFrame in game_frame[side]["players"]:
-                            if self.get_player_side(playerFrame, self.json["mapName"]) != playerFrame["side"]:
-                                switchedPlayers.add(playerFrame["steamID"])
-                
-                    for playerToSwitch in switchedPlayers:
-                        print(f"Round {game_round['roundNum']}: Switching player {str(playerToSwitch)}")
-                        self.switch_player_side(game_round, playerToSwitch)
+                    # Temporarily disabled; retain the implementation for later use.
+                    position_based_team_switching_enabled = False
+                    if position_based_team_switching_enabled:
+                        print("Forcing teams based on average player position")
+                        switchedPlayers = {}
+                        for side in ("t", "ct"):
+                            for playerFrame in game_frame[side]["players"]:
+                                average_position = self.get_average_player_position(
+                                    game_round, playerFrame["steamID"]
+                                )
+                                if average_position is None:
+                                    inferred_side = playerFrame["side"]
+                                else:
+                                    average_player = {**playerFrame, **average_position}
+                                    inferred_side = self.get_player_side(
+                                        average_player, self.json["mapName"]
+                                    )
+                                if inferred_side != playerFrame["side"]:
+                                    switchedPlayers[playerFrame["steamID"]] = (
+                                        playerFrame.get("name", "<unknown>"),
+                                        average_position,
+                                    )
+                    
+                        for playerToSwitch, (playerName, averagePosition) in switchedPlayers.items():
+                            print(
+                                f"Round {game_round['roundNum']}: Switching player "
+                                f"{playerName} ({playerToSwitch}), average position: "
+                                f"x={averagePosition['x']:.2f}, "
+                                f"y={averagePosition['y']:.2f}, "
+                                f"z={averagePosition['z']:.2f}"
+                            )
+                            self.switch_player_side(game_round, playerToSwitch)
 
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
@@ -1451,8 +1537,15 @@ class DemoParser:
                         loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "t")
                         if firstDied:
+                            removed_player = next(
+                                (player for player in player_lists[0] if player["steamID"] == firstDied),
+                                {},
+                            )
                             self.remove_player_from_round(game_round, firstDied)
-                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from T {str(firstDied)}")
+                            print(
+                                f"Round {game_round['roundNum']}: Extra player found and first dead "
+                                f"removed from T {removed_player.get('name', '<unknown>')} ({firstDied})"
+                            )
                         else:
                             break
 
@@ -1461,8 +1554,15 @@ class DemoParser:
                         loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "t")
                         if firstDied:
+                            removed_player = next(
+                                (player for player in player_lists[0] if player["steamID"] == firstDied),
+                                {},
+                            )
                             self.remove_player_from_round(game_round, firstDied)
-                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from T {str(firstDied)}")
+                            print(
+                                f"Round {game_round['roundNum']}: Extra player found and first dead "
+                                f"removed from T {removed_player.get('name', '<unknown>')} ({firstDied})"
+                            )
                         else:
                             break
                 
@@ -1471,8 +1571,15 @@ class DemoParser:
                         loop += 1
                         firstDied = self.findFirstDeadPlayer(game_round, "ct")
                         if firstDied:
+                            removed_player = next(
+                                (player for player in player_lists[1] if player["steamID"] == firstDied),
+                                {},
+                            )
                             self.remove_player_from_round(game_round, firstDied)
-                            print(f"Round {game_round['roundNum']}: Extra player found and first dead removed from CT {str(firstDied)}")
+                            print(
+                                f"Round {game_round['roundNum']}: Extra player found and first dead "
+                                f"removed from CT {removed_player.get('name', '<unknown>')} ({firstDied})"
+                            )
                         else:
                             break
 
