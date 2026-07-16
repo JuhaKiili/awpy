@@ -1494,38 +1494,38 @@ class DemoParser:
                         print(f"Looking for coaches with empty inventory")
                         self.remove_coaches_with_empty_inventory(game_round)
                         
-                    # Temporarily disabled; retain the implementation for later use.
-                    position_based_team_switching_enabled = False
-                    if position_based_team_switching_enabled:
-                        print("Forcing teams based on average player position")
-                        switchedPlayers = {}
-                        for side in ("t", "ct"):
-                            for playerFrame in game_frame[side]["players"]:
-                                average_position = self.get_average_player_position(
-                                    game_round, playerFrame["steamID"]
-                                )
-                                if average_position is None:
-                                    inferred_side = playerFrame["side"]
-                                else:
-                                    average_player = {**playerFrame, **average_position}
-                                    inferred_side = self.get_player_side(
-                                        average_player, self.json["mapName"]
-                                    )
-                                if inferred_side != playerFrame["side"]:
-                                    switchedPlayers[playerFrame["steamID"]] = (
-                                        playerFrame.get("name", "<unknown>"),
-                                        average_position,
-                                    )
-                    
-                        for playerToSwitch, (playerName, averagePosition) in switchedPlayers.items():
-                            print(
-                                f"Round {game_round['roundNum']}: Switching player "
-                                f"{playerName} ({playerToSwitch}), average position: "
-                                f"x={averagePosition['x']:.2f}, "
-                                f"y={averagePosition['y']:.2f}, "
-                                f"z={averagePosition['z']:.2f}"
+                    print("Forcing teams based on average player position")
+                    switchedPlayers = {}
+                    for side in ("t", "ct"):
+                        for playerFrame in game_frame[side]["players"]:
+                            average_position = self.get_average_player_position(
+                                game_round, playerFrame["steamID"]
                             )
-                            self.switch_player_side(game_round, playerToSwitch)
+                            if average_position is None:
+                                inferred_side = playerFrame["side"]
+                            else:
+                                average_player = {**playerFrame, **average_position}
+                                inferred_side = self.get_player_side(
+                                    average_player, self.json["mapName"]
+                                )
+                            if inferred_side != playerFrame["side"]:
+                                switchedPlayers[playerFrame["steamID"]] = (
+                                    playerFrame.get("name", "<unknown>"),
+                                    average_position,
+                                )
+
+                    for playerToSwitch, (
+                        playerName,
+                        averagePosition,
+                    ) in switchedPlayers.items():
+                        print(
+                            f"Round {game_round['roundNum']}: Switching player "
+                            f"{playerName} ({playerToSwitch}), average position: "
+                            f"x={averagePosition['x']:.2f}, "
+                            f"y={averagePosition['y']:.2f}, "
+                            f"z={averagePosition['z']:.2f}"
+                        )
+                        self.switch_player_side(game_round, playerToSwitch)
 
                     # Remove if any side has > 5 players
                     # CSGOLENS: Remove if any side has less than 3 players
